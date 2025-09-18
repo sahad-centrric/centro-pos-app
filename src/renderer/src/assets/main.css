@@ -1,12 +1,16 @@
-@import 'tailwindcss';
-
-
 @import "tw-animate-css";
-
 @import './base.css';
+@import '@fortawesome/fontawesome-free/css/all.min.css';
 
 
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+
+/* Override body styles for login page only */
 body {
   display: flex;
   align-items: center;
@@ -16,17 +20,12 @@ body {
   user-select: none;
 }
 
-
-
 #root {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
 }
-
-
-
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
@@ -137,9 +136,59 @@ body {
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    border-color: var(--border);
+    outline-color: var(--ring);
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--background);
+    color: var(--foreground);
   }
-} 
+}
+
+
+/* Custom POS styles for login page */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.modern-shadow {
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+.text-primary {
+  color: #334155;
+}
+
+.text-accent {
+  color: #3b82f6;
+}
+
+.bg-accent {
+  background-color: #3b82f6;
+}
+
+.delay-2000 {
+  animation-delay: 2s;
+}
+
+.delay-4000 {
+  animation-delay: 4s;
+}
+
+/* Override body styles for POS app when needed */
+body.pos-app {
+  display: block;
+  overflow: auto;
+  user-select: auto;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+}
+
+#root.pos-app {
+  display: block;
+  align-items: stretch;
+  justify-content: flex-start;
+  flex-direction: column;
+  min-height: 100vh;
+}

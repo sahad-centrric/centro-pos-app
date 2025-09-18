@@ -13,8 +13,23 @@ function createWindow(): void {
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      sandbox: false,
+      webSecurity: false,
+      nodeIntegration: false,
+      contextIsolation: true,
+      allowRunningInsecureContent: true
     }
+  })
+
+  // Completely disable CSP
+  mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+    const responseHeaders = { ...details.responseHeaders }
+    delete responseHeaders['content-security-policy']
+    delete responseHeaders['Content-Security-Policy']
+    
+    callback({
+      responseHeaders
+    })
   })
 
   mainWindow.on('ready-to-show', () => {
