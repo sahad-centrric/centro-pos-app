@@ -1,47 +1,70 @@
-import { Tabs, TabsList, TabsTrigger } from '@renderer/components/ui/tabs'
 import { Button } from '@renderer/components/ui/button'
-import { Badge } from '@renderer/components/ui/badge'
-import { Plus } from 'lucide-react'
+import { usePOSTabStore } from '../../store/usePOSTabStore'
 
-type Props = {
-  orderNumber: string
-  date: string
-  activeTab: string
-  onTabChange: (value: string) => void
-}
 
-const Header: React.FC<Props> = ({ orderNumber, date, activeTab, onTabChange }) => (
-  <div className="flex justify-between items-center p-4 border-b">
-    <div className="flex items-center gap-4">
-      <Button className="bg-gray-800 hover:bg-gray-700">
-        <Plus className="w-4 h-4 mr-2" />
-        New Order
-        <span className="ml-2 text-xs bg-gray-600 px-1 rounded">Ctrl+N</span>
-      </Button>
-      <div className="flex gap-2">
-        <Badge variant="outline" className="text-blue-600">
-          {orderNumber}
-        </Badge>
-        <Badge variant="outline" className="text-blue-600">
-          #002
-        </Badge>
+
+const Header: React.FC = () => {
+    const { tabs, activeTabId, setActiveTab, closeTab, createNewTab } = usePOSTabStore();
+
+    const handleNewOrder = () => {
+    createNewTab();
+  };
+
+  return (
+    <div className="p-3 glass-effect border-b border-white/20">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-6">
+          <Button 
+            className="px-8 py-3 bg-gradient-to-r from-primary to-slate-700 text-white font-medium rounded-xl hover:shadow-lg transition-all duration-300 flex items-center gap-3 modern-shadow" 
+            onClick={handleNewOrder}
+          >
+            <i className="fas fa-plus text-lg"></i>
+            New Order <span className="text-xs opacity-80 bg-white/20 px-2 py-1 rounded-lg ml-2">Ctrl+N</span>
+          </Button>
+          
+          {/* Tabs */}
+          <div className="flex gap-2">
+            {tabs.map(tab => (
+              <div
+                key={tab.id}
+                className={`flex items-center px-3 py-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                  activeTabId === tab.id
+                    ? 'bg-white/80 font-bold shadow'
+                    : 'bg-white/40'
+                }`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                <span>
+                  {tab.orderId
+                    ? `#${tab.orderId}`
+                    : tab.type === 'new'
+                      ? 'New'
+                      : 'Order'}
+                </span>
+                <button
+                  className="ml-2 text-gray-400 hover:text-red-500"
+                  onClick={e => {
+                    e.stopPropagation();
+                    closeTab(tab.id);
+                  }}
+                  title="Close tab"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Date/Time Display */}
+        <div className="ml-auto text-right bg-white/60 backdrop-blur rounded-xl p-4 shadow-lg">
+          <div className="font-bold text-lg">{new Date().toLocaleDateString()}</div>
+          <div className="text-sm text-gray-600">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+        </div>
       </div>
     </div>
+  );
+}
 
-    <div className="text-center">
-      <div className="text-sm font-medium">{date}</div>
-      <div className="text-xs text-gray-500">12:08 PM</div>
-    </div>
-
-    <Tabs value={activeTab} onValueChange={onTabChange} className="w-auto">
-      <TabsList className="grid w-full grid-cols-4">
-        <TabsTrigger value="product">Product</TabsTrigger>
-        <TabsTrigger value="customer">Customer</TabsTrigger>
-        <TabsTrigger value="stock">Stock</TabsTrigger>
-        <TabsTrigger value="account">Account</TabsTrigger>
-      </TabsList>
-    </Tabs>
-  </div>
-)
 
 export default Header

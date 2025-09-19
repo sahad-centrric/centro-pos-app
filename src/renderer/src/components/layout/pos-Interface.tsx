@@ -48,12 +48,7 @@ const POSInterface: React.FC = () => {
     <div className="h-screen bg-gray-50 flex">
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
-        <Header
-          orderNumber="#001"
-          date="Jan 21, 2025"
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-        />
+        <Header/>
 
         <ActionButtons />
 
