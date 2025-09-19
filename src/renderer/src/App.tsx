@@ -6,22 +6,23 @@ import { useAuthStore } from './store/useAuthStore';
 const App: React.FC = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [currentPage, setCurrentPage] = useState<'login' | 'pos'>('login');
-  const { isAuthenticated, user } = useAuthStore();
+  const {  user , validateSession } = useAuthStore();
 
   // Initialize app and check authentication status
   useEffect(() => {
     const initializeApp = async () => {
-      // Check if user is already authenticated
-      if (isAuthenticated) {
-        setCurrentPage('pos');
-      } else {
-        setCurrentPage('login');
-      }
-      setIsInitialized(true);
-    };
+    // Always validate with server first
+    const isValid = await validateSession();
+    if (isValid) {
+      setCurrentPage('pos');
+    } else {
+      setCurrentPage('login');
+    }
+    setIsInitialized(true);
+  };
 
     initializeApp();
-  }, [isAuthenticated]);
+  }, [validateSession]);
 
   // Handle successful login
   const handleLoginSuccess = () => {
