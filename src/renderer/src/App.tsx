@@ -1,34 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'
 import POSInterface from './components/layout/pos-Interface'
 import LoginInterface from './components/layout/login-Interface'
-import { useAuthStore } from './store/useAuthStore';
+import { useAuthStore } from './store/useAuthStore'
 
 const App: React.FC = () => {
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [currentPage, setCurrentPage] = useState<'login' | 'pos'>('login');
-  const {  user , validateSession } = useAuthStore();
+  const [isInitialized, setIsInitialized] = useState(false)
+  const [currentPage, setCurrentPage] = useState<'login' | 'pos'>('login')
+  const { user, validateSession } = useAuthStore()
 
   // Initialize app and check authentication status
   useEffect(() => {
     const initializeApp = async () => {
-    // Always validate with server first
-    const isValid = await validateSession();
-    if (isValid) {
-      setCurrentPage('pos');
-    } else {
-      setCurrentPage('login');
+      // Always validate with server first
+      const isValid = await validateSession()
+      if (isValid) {
+        setCurrentPage('pos')
+      } else {
+        setCurrentPage('login')
+      }
+      setIsInitialized(true)
     }
-    setIsInitialized(true);
-  };
 
-    initializeApp();
-  }, [validateSession]);
+    initializeApp()
+  }, [validateSession])
 
   // Handle successful login
   const handleLoginSuccess = () => {
-    console.log('Login successful, user:', user);
-    setCurrentPage('pos');
-  };
+    console.log('Login successful, user:', user)
+    setCurrentPage('pos')
+  }
 
   // Handle logout
   // const handleLogout = () => {
@@ -44,9 +44,9 @@ const App: React.FC = () => {
           <p className="text-gray-700 font-medium">Loading CentroERP POS...</p>
         </div>
       </div>
-    );
+    )
   }
-    return (
+  return (
     <div className="App">
       {currentPage === 'login' ? (
         <LoginInterface onLoginSuccess={handleLoginSuccess} />
@@ -54,7 +54,7 @@ const App: React.FC = () => {
         <POSInterface />
       )}
     </div>
-  );
+  )
 }
 
 export default App

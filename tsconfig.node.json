@@ -8,6 +8,10 @@
     "paths": {
       "@/*": ["./src/renderer/src/*"]
     },
-    "moduleResolution": "bundler"
+    "moduleResolution": "bundler",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "useDefineForClassFields": false
+
   }
 }

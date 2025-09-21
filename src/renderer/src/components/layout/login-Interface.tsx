@@ -1,41 +1,41 @@
-import React, { useState, useEffect } from 'react';
-import { useAuthStore } from '../../store/useAuthStore';
+import React, { useState, useEffect } from 'react'
+import { useAuthStore } from '../../store/useAuthStore'
 
 interface LoginPageProps {
-  onLoginSuccess: () => void;
+  onLoginSuccess: () => void
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
 
-  const { login, isLoading, error, clearError, isAuthenticated } = useAuthStore();
+  const { login, isLoading, error, clearError, isAuthenticated } = useAuthStore()
 
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      onLoginSuccess();
+      onLoginSuccess()
     }
-  }, [isAuthenticated, onLoginSuccess]);
+  }, [isAuthenticated, onLoginSuccess])
 
   const handleLogin = async () => {
-    clearError();
+    clearError()
 
     if (!username || !password) {
-      return;
+      return
     }
 
     try {
-      await login({ username, password });
-      onLoginSuccess();
+      await login({ username, password })
+      onLoginSuccess()
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('Login failed:', error)
     }
-  };
+  }
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 to-gray-100 min-h-screen flex items-center justify-center p-6 font-sans relative">
+    <div className="bg-gradient-to-br from-slate-50 to-gray-100 min-h-screen flex items-center justify-center p-6 font-sans relative w-screen">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-30">
         <div className="absolute top-0 left-0 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
@@ -54,12 +54,14 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         </div>
 
         {/* Login Form */}
-        <div className="space-y-6"
+        <div
+          className="space-y-6"
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
-              handleLogin();
+              handleLogin()
             }
-          }}>
+          }}
+        >
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-3">
               <p className="text-red-600 text-sm">{error}</p>
@@ -134,12 +136,19 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
         <div className="text-center mt-8 space-y-3">
           <p className="text-sm text-gray-600">
-            Don't have an account?
-            <span className="text-accent hover:text-accent/80 font-medium transition-all"> Sign up here</span>
+            Don&apos;t have an account?
+            <span className="text-accent hover:text-accent/80 font-medium transition-all">
+              {' '}
+              Sign up here
+            </span>
           </p>
           <div className="flex justify-center space-x-6 text-xs text-gray-500">
-            <span className="hover:text-gray-700 transition-all cursor-pointer">Privacy Policy</span>
-            <span className="hover:text-gray-700 transition-all cursor-pointer">Terms of Service</span>
+            <span className="hover:text-gray-700 transition-all cursor-pointer">
+              Privacy Policy
+            </span>
+            <span className="hover:text-gray-700 transition-all cursor-pointer">
+              Terms of Service
+            </span>
             <span className="hover:text-gray-700 transition-all cursor-pointer">Support</span>
           </div>
         </div>
@@ -210,7 +219,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default LoginPage;
+export default LoginPage
