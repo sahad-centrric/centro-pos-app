@@ -1,25 +1,37 @@
 import React, { useState, useEffect } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import POSInterface from './components/layout/pos-Interface'
 import LoginInterface from './components/layout/login-Interface'
 import { useAuthStore } from './store/useAuthStore';
 
+
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 1,
+    },
+  },
+});
+
 const App: React.FC = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [currentPage, setCurrentPage] = useState<'login' | 'pos'>('login');
-  const {  user , validateSession } = useAuthStore();
+  const { user, validateSession } = useAuthStore();
 
   // Initialize app and check authentication status
   useEffect(() => {
     const initializeApp = async () => {
-    // Always validate with server first
-    const isValid = await validateSession();
-    if (isValid) {
-      setCurrentPage('pos');
-    } else {
-      setCurrentPage('login');
-    }
-    setIsInitialized(true);
-  };
+      // Always validate with server first
+      const isValid = await validateSession();
+      if (isValid) {
+        setCurrentPage('pos');
+      } else {
+        setCurrentPage('login');
+      }
+      setIsInitialized(true);
+    };
 
     initializeApp();
   }, [validateSession]);
@@ -46,14 +58,16 @@ const App: React.FC = () => {
       </div>
     );
   }
-    return (
-    <div className="App">
-      {currentPage === 'login' ? (
-        <LoginInterface onLoginSuccess={handleLoginSuccess} />
-      ) : (
-        <POSInterface />
-      )}
-    </div>
+  return (
+    <QueryClientProvider client={queryClient}>
+      <div className="App">
+        {currentPage === 'login' ? (
+          <LoginInterface onLoginSuccess={handleLoginSuccess} />
+        ) : (
+          <POSInterface />
+        )}
+      </div>
+    </QueryClientProvider>
   );
 }
 

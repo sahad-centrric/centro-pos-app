@@ -53,7 +53,7 @@ const POSInterface: React.FC = () => {
         <ActionButtons />
 
         <div className="flex-1 overflow-auto">
-          <OrderDetails orderNumber="POS-2025-001" />
+          <OrderDetails />
           <ItemsTable items={items} onRemoveItem={removeItem} />
           <DiscountSection />
         </div>
