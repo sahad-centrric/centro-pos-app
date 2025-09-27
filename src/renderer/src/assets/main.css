@@ -8,6 +8,9 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  overscroll-behavior: none;
+}
 
 
 /* Override body styles for login page only */

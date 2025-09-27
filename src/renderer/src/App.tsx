@@ -1,7 +1,18 @@
 import React, { useState, useEffect } from 'react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import POSInterface from './components/layout/pos-Interface'
 import LoginInterface from './components/layout/login-Interface'
 import { useAuthStore } from './store/useAuthStore'
+
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 1
+    }
+  }
+})
 
 const App: React.FC = () => {
   const [isInitialized, setIsInitialized] = useState(false)
@@ -47,13 +58,15 @@ const App: React.FC = () => {
     )
   }
   return (
-    <div className="App">
-      {currentPage === 'login' ? (
-        <LoginInterface onLoginSuccess={handleLoginSuccess} />
-      ) : (
-        <POSInterface />
-      )}
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <div className="App">
+        {currentPage === 'login' ? (
+          <LoginInterface onLoginSuccess={handleLoginSuccess} />
+        ) : (
+          <POSInterface />
+        )}
+      </div>
+    </QueryClientProvider>
   )
 }
 
