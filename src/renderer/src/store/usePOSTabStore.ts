@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
@@ -46,7 +47,7 @@ const mockCustomers = [{ name: 'Walking Customer', gst: 'Not Applicable' }]
 
 export const usePOSTabStore = create<POSTabStore>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       tabs: [],
       activeTabId: null,
 

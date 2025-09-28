@@ -1,8 +1,53 @@
-import { contextBridge } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
 // Custom APIs for renderer
-const api = {}
+// Custom Auth API
+const authAPI = {
+  storeAuthData: (data: any) => ipcRenderer.invoke('store-auth-data', data),
+  getAuthData: () => ipcRenderer.invoke('get-auth-data'),
+  clearAuthData: () => ipcRenderer.invoke('clear-auth-data'),
+  setSessionCookie: (cookieDetails: any) => ipcRenderer.invoke('set-session-cookie', cookieDetails),
+  clearSessionCookies: () => ipcRenderer.invoke('clear-session-cookies'),
+  storeUserPreferences: (preferences: any) =>
+    ipcRenderer.invoke('store-user-preferences', preferences),
+  getUserPreferences: () => ipcRenderer.invoke('get-user-preferences'),
+  clearUserPreferences: () => ipcRenderer.invoke('clear-user-preferences')
+}
+
+// App utility API
+const appAPI = {
+  getVersion: () => ipcRenderer.invoke('get-app-version'),
+  getUserDataPath: () => ipcRenderer.invoke('get-user-data-path')
+}
+
+// Event listeners API
+const eventsAPI = {
+  onRedirectToLogin: (callback: () => void) => {
+    ipcRenderer.on('redirect-to-login', callback)
+  },
+  removeAllListeners: (channel: string) => {
+    ipcRenderer.removeAllListeners(channel)
+  },
+  // Add more event listeners as needed
+  onThemeChanged: (callback: (theme: string) => void) => {
+    ipcRenderer.on('theme-changed', (_event, theme) => callback(theme))
+  }
+}
+
+// Combined custom API
+const customAPI = {
+  auth: authAPI,
+  app: appAPI,
+  events: eventsAPI
+}
+
+// Type definitions for our custom API
+interface CustomElectronAPI {
+  auth: typeof authAPI
+  app: typeof appAPI
+  events: typeof eventsAPI
+}
 
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise
@@ -10,7 +55,7 @@ const api = {}
 if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)
-    contextBridge.exposeInMainWorld('api', api)
+    contextBridge.exposeInMainWorld('electronAPI', customAPI)
   } catch (error) {
     console.error(error)
   }
@@ -18,5 +63,7 @@ if (process.contextIsolated) {
   // @ts-ignore (define in dts)
   window.electron = electronAPI
   // @ts-ignore (define in dts)
-  window.api = api
+  window.electronAPI = customAPI
 }
+
+export type { CustomElectronAPI }

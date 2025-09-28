@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { API_Endpoints } from '@renderer/config/endpoints'
 import api from '../services/api'
 
 // Customer interface - simple and working
@@ -83,7 +84,7 @@ export const customersAPI = {
         limit_page_length: 100
       }
 
-      const response = await api.get('/resource/Customer', {
+      const response = await api.get(API_Endpoints.CUSTOMERS, {
         params: { ...defaultParams, ...params }
       })
 

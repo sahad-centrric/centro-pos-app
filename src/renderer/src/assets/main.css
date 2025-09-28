@@ -1,8 +1,6 @@
-@import "tw-animate-css";
+@import 'tw-animate-css';
 @import './base.css';
 @import '@fortawesome/fontawesome-free/css/all.min.css';
-
-
 
 @tailwind base;
 @tailwind components;
@@ -11,7 +9,6 @@
 html {
   overscroll-behavior: none;
 }
-
 
 /* Override body styles for login page only */
 body {
@@ -147,7 +144,6 @@ body {
     color: var(--foreground);
   }
 }
-
 
 /* Custom POS styles for login page */
 .glass-effect {

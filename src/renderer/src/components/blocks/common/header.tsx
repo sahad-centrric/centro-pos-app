@@ -1,17 +1,28 @@
 import { Button } from '@renderer/components/ui/button'
-import { usePOSTabStore } from '../../store/usePOSTabStore'
-import CustomerSearchModal from './customer-search'
+import { usePOSTabStore } from '../../../store/usePOSTabStore'
+import CustomerSearchModal from '../customer/customer-search'
 import { useState } from 'react'
+import { API_Endpoints } from '@renderer/config/endpoints'
+import { useMutationQuery } from '@renderer/hooks/react-query/useReactQuery'
+import { useAuth } from '@renderer/hooks/useAuth'
+// import { useMutationQuery } from '@renderer/hooks/react-query/useReactQuery'
+// import { API_Endpoints } from '@renderer/config/endpoints'
 
 const Header: React.FC = () => {
-
-  const [ open , setOpen ] = useState(false) // For future use if needed
+  const [open, setOpen] = useState(false) // For future use if needed
 
   const { tabs, activeTabId, setActiveTab, closeTab, createNewTab } = usePOSTabStore()
 
   const handleNewOrder = () => {
     createNewTab()
   }
+
+  const { mutate } = useMutationQuery({
+    endPoint: API_Endpoints.LOGOUT,
+    method: 'POST'
+  })
+
+  const { logout } = useAuth()
 
   return (
     <div className="p-3 glass-effect border-b border-white/20">
@@ -54,19 +65,36 @@ const Header: React.FC = () => {
           </div>
         </div>
 
-        <CustomerSearchModal
-open={open} onClose={() => setOpen(false)} onSelect={() => {}}
-        />
+        <CustomerSearchModal open={open} onClose={() => setOpen(false)} onSelect={() => {}} />
 
         {/* Date/Time Display */}
-        <div className="ml-auto text-right bg-white/60 backdrop-blur rounded-xl p-4 shadow-lg">
+        {/* <div className="ml-auto text-right bg-white/60 backdrop-blur rounded-xl p-4 shadow-lg">
           <div className="font-bold text-lg">{new Date().toLocaleDateString()}</div>
           <div className="text-sm text-gray-600">
             {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </div>
-          <button title='OPEN'>
-            OPEN MODLE
-          </button>
+          <button title="OPEN">OPEN MODLE</button>
+        </div> */}
+
+        <div>
+          <Button
+            variant={'outline'}
+            onClick={() =>
+              mutate(
+                {
+                  data: undefined,
+                  params: {}
+                },
+                {
+                  onSuccess: () => {
+                    logout()
+                  }
+                }
+              )
+            }
+          >
+            Logout
+          </Button>
         </div>
       </div>
     </div>

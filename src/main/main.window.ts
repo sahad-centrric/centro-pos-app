@@ -19,7 +19,7 @@ export async function createWindow() {
   })
 
   const URL = isDev
-    ? 'http://localhost:3000'
+    ? 'http://localhost:4000'
     : `file://${join(app.getAppPath(), 'dist/render/index.html')}`
 
   win.loadURL(URL)

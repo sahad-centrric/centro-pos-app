@@ -1,7 +1,7 @@
 import { resolve } from 'path'
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import react from '@vitejs/plugin-react'
-
+import { tanstackRouter } from '@tanstack/router-plugin/vite'
 export default defineConfig({
   main: {
     plugins: [externalizeDepsPlugin()]
@@ -17,8 +17,22 @@ export default defineConfig({
       }
     },
     server: {
-      port: 3000
+      port: 4000,
+      proxy: {
+        '/api': {
+          target: 'http://139.162.146.102:8080',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/api/, '/api')
+        }
+      }
     },
-    plugins: [react()]
+    plugins: [
+      tanstackRouter({
+        target: 'react',
+        autoCodeSplitting: true
+      }) as any,
+      react()
+    ]
   }
 })

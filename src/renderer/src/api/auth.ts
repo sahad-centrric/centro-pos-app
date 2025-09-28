@@ -1,4 +1,6 @@
+import { API_Endpoints } from '@renderer/config/endpoints'
 import api from '../services/api'
+import ElectronAuthStore from '@renderer/services/electron-auth-store'
 
 // Frappe login credentials interface
 interface LoginCredentials {
@@ -20,13 +22,18 @@ interface SessionResponse {
   user_id?: string
 }
 
+const authStore = ElectronAuthStore.getInstance()
+
+
 export const authAPI = {
   login: async (credentials: LoginCredentials): Promise<FrappeLoginResponse> => {
     try {
-      const response = await api.post('/login', {
+      const response = await api.post(API_Endpoints.LOGIN, {
         usr: credentials.username,
         pwd: credentials.password
       })
+
+      await authStore.setFrappeAuth(response.data)
 
       // ✅ Add this logging to see the response
       console.log('Login Response:', response.data)

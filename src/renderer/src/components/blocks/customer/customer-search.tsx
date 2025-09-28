@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCreateCustomer, useCustomers } from '@renderer/hooks/useCustomer'
 import React, { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'

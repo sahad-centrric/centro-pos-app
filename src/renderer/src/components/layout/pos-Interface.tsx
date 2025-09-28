@@ -1,15 +1,19 @@
-import { useState } from 'react'
-import ActionButtons from '../blocks/action-buttons'
-import OrderDetails from '../blocks/order-details'
-import ItemsTable from '../blocks/items-table'
-import PaymentAlert from '../blocks/payment-alert'
-import ProductDetail from '../blocks/product-detail'
-import Header from '../blocks/header'
-import DiscountSection from '../blocks/discount-section'
+import { Fragment, useState } from 'react'
+import ActionButtons from '../blocks/common/action-buttons'
+import OrderDetails from '../blocks/order/order-details'
+import ItemsTable from '../blocks/common/items-table'
+import PaymentAlert from '../blocks/payment/payment-alert'
+import ProductDetail from '../blocks/products/product-detail'
+import Header from '../blocks/common/header'
+import DiscountSection from '../blocks/products/discount-section'
+import { useGetQuery } from '@renderer/hooks/react-query/useReactQuery'
+import { API_Endpoints } from '@renderer/config/endpoints'
+import ProductSearchModal from '../blocks/products/product-modal'
 
 // Main POS Interface Component
 const POSInterface: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('product')
+  const [open, setOpen] = useState(false) // For future use if needed
+
   const [items, setItems] = useState([
     {
       code: 'IPH15-128',
@@ -44,28 +48,55 @@ const POSInterface: React.FC = () => {
     setItems(items.filter((item) => item.code !== code))
   }
 
+  const { data } = useGetQuery({
+    endPoint: API_Endpoints.PRODUCTS,
+    queryParams: {
+      limit_start: 0,
+      limit_page_length: 100,
+      fields: '["name", "item_name", "item_code", "image", "standard_rate"]',
+      filters: '[]'
+    },
+    method: 'GET'
+  })
+
+  console.log('data', data)
+
   return (
-    <div className="h-screen bg-gray-50 flex  w-screen">
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        <Header />
+    <Fragment>
+      <div className="h-screen bg-gray-50 flex  w-screen">
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col">
+          <Header />
 
-        <ActionButtons />
+          <button onClick={() => setOpen(true)} className="m-4 p-2 bg-blue-500 text-white rounded">
+            Open
+          </button>
 
-        <div className="flex-1 overflow-auto">
-          <OrderDetails orderNumber="POS-2025-001" />
-          <ItemsTable items={items} onRemoveItem={removeItem} />
-          <DiscountSection />
+          <ActionButtons />
+
+          <div className="flex-1 overflow-auto">
+            <OrderDetails orderNumber="POS-2025-001" />
+            <ItemsTable items={items} onRemoveItem={removeItem} />
+            <DiscountSection />
+          </div>
+
+          <PaymentAlert orderNumber={''} />
         </div>
 
-        <PaymentAlert orderNumber={''} />
+        {/* Sidebar */}
+        <div className="w-80 border-l bg-white">
+          <ProductDetail selectedProduct="" />
+        </div>
       </div>
 
-      {/* Sidebar */}
-      <div className="w-80 border-l bg-white">
-        <ProductDetail selectedProduct="" />
-      </div>
-    </div>
+
+
+      <ProductSearchModal
+        open={open}
+        onOpenChange={setOpen}
+        onSelect={(product) => console.log('product', product)}
+      />
+    </Fragment>
   )
 }
 
