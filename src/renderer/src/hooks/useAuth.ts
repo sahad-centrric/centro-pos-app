@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import ElectronAuthStore from '@renderer/services/electron-auth-store'
 import type { AuthData } from '@renderer/types/electron'
+import { useRouter } from '@tanstack/react-router'
 
 interface UseAuthReturn {
   isAuthenticated: boolean
@@ -14,6 +15,7 @@ interface UseAuthReturn {
 }
 
 export function useAuth(): UseAuthReturn {
+  const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -49,13 +51,14 @@ export function useAuth(): UseAuthReturn {
 
         await authStore.setFrappeAuth(userData)
         await checkAuth() // Refresh auth state
+        router.navigate({ to: '/', replace: true }) // Redirect to home or dashboard
       } catch (err) {
         console.error('Login failed:', err)
         setError(err instanceof Error ? err.message : 'Login failed')
         throw err
       }
     },
-    [authStore, checkAuth]
+    [authStore, checkAuth, router]
   )
 
   const logout = useCallback(async () => {
@@ -66,13 +69,14 @@ export function useAuth(): UseAuthReturn {
       await authStore.clearAuthData()
       setIsAuthenticated(false)
       setAuthData(null)
+      router.navigate({ to: '/login', replace: true }) // Redirect to home or dashboard
     } catch (err) {
       console.error('Logout failed:', err)
       setError(err instanceof Error ? err.message : 'Logout failed')
     } finally {
       setIsLoading(false)
     }
-  }, [authStore])
+  }, [authStore, router])
 
   const refreshAuth = useCallback(async () => {
     await checkAuth()

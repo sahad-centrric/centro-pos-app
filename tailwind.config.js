@@ -4,8 +4,8 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: '#334155',
-        accent: '#3b82f6'
+        primary: '#94a3b8', // Even lighter slate (slate-400)
+        accent: '#93c5fd'
       }
     }
   },

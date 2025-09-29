@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as Yup from 'yup'
@@ -6,7 +6,6 @@ import type { SubmitHandler } from 'react-hook-form'
 import { Search, Plus, ArrowLeft, Wand2, Package } from 'lucide-react'
 import { toast } from 'sonner'
 
-// Shadcn UI Components
 import {
   Dialog,
   DialogContent,
@@ -46,7 +45,7 @@ interface Product {
   name: string
   item_name: string
   item_code: string
-  image?: string
+  image?: string | null
   standard_rate: number
 }
 
@@ -71,7 +70,19 @@ const productSchema = Yup.object().shape({
   max_order_qty: Yup.number().min(0, 'Maximum quantity must be positive')
 })
 
-type ProductFormData = Yup.InferType<typeof productSchema>
+type ProductFormData = {
+  item_code: string
+  item_name: string
+  standard_rate: number
+  description?: string
+  stock_uom: string
+  item_group?: string
+  brand?: string
+  barcode?: string
+  opening_stock?: number
+  min_order_qty?: number
+  max_order_qty?: number
+}
 
 // Product Search Component
 const ProductSearch: React.FC<{
@@ -80,6 +91,8 @@ const ProductSearch: React.FC<{
 }> = ({ onSelect, onCreateNew }) => {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(-1)
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([])
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
 
   // Fetch products with search
   const { data: products, isLoading } = useGetQuery({
@@ -95,6 +108,20 @@ const ProductSearch: React.FC<{
   })
 
   const productList = products?.data || []
+
+  useEffect(() => {
+    if (selectedIndex >= 0 && itemRefs.current[selectedIndex]) {
+      itemRefs.current[selectedIndex]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest'
+      })
+    }
+  }, [selectedIndex])
+
+  // // Reset selection when search term changes
+  // useEffect(() => {
+  //   setSelectedIndex(-1)
+  // }, [searchTerm])
 
   // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -141,7 +168,7 @@ const ProductSearch: React.FC<{
       </div>
 
       {/* Search Results */}
-      <ScrollArea className="h-[300px]">
+      <ScrollArea className="h-[300px]" ref={scrollAreaRef}>
         {isLoading ? (
           <div className="flex items-center justify-center h-32">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
@@ -158,6 +185,9 @@ const ProductSearch: React.FC<{
           <div className="space-y-1">
             {productList.map((product: Product, index: number) => (
               <div
+                ref={(el) => {
+                  itemRefs.current[index] = el
+                }}
                 key={product.name}
                 className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
                   selectedIndex === index ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
@@ -196,7 +226,6 @@ const ProductCreate: React.FC<{
   onBack: () => void
   onSuccess: (product: Product) => void
 }> = ({ onBack, onSuccess }) => {
-
   const form = useForm<ProductFormData>({
     resolver: yupResolver(productSchema),
     defaultValues: {
