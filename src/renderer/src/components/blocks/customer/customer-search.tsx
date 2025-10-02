@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCreateCustomer, useCustomers } from '@renderer/hooks/useCustomer'
+import { ArrowLeft, Plus, Search } from 'lucide-react'
 import React, { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { Input } from '@renderer/components/ui/input'
+import { Button } from '@renderer/components/ui/button'
 
 // Default walking customer
 const walkingCustomer = { name: 'Walking Customer', gst: 'Not Applicable' }
@@ -142,28 +145,28 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({ open, onClose
               {showCreateForm ? 'Create New Customer' : 'Select Customer'}
             </h3>
             {!showCreateForm && (
-              <button
+              <Button
                 onClick={() => setShowCreateForm(true)}
                 className="w-8 h-8 bg-accent text-white rounded-full flex items-center justify-center hover:bg-accent/90 transition-all"
                 title="Create New Customer"
               >
-                <i className="fas fa-plus text-sm"></i>
-              </button>
+                <Plus className="h-4 w-4 text-gray-600" />
+                </Button>
             )}
             {showCreateForm && (
-              <button
+              <Button
                 onClick={() => setShowCreateForm(false)}
                 className="w-8 h-8 bg-gray-200 text-gray-600 rounded-full flex items-center justify-center hover:bg-gray-300 transition-all"
                 title="Back to Search"
               >
-                <i className="fas fa-arrow-left text-sm"></i>
-              </button>
+              <ArrowLeft className="h-4 w-4 text-gray-600" />
+              </Button>
             )}
           </div>
 
           {!showCreateForm ? (
             <div className="relative">
-              <input
+              <Input
                 type="text"
                 placeholder="Search customers..."
                 className="w-full p-3 pl-10 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-transparent"
@@ -178,7 +181,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({ open, onClose
                 }}
                 autoFocus
               />
-              <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+              <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             </div>
           ) : null}
         </div>
@@ -252,7 +255,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({ open, onClose
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <input
+                    <Input
                       type="email"
                       value={newCustomer.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
@@ -262,7 +265,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({ open, onClose
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                    <input
+                    <Input
                       type="tel"
                       value={newCustomer.phone}
                       onChange={(e) => handleInputChange('phone', e.target.value)}
@@ -274,7 +277,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({ open, onClose
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">GST Number</label>
-                  <input
+                  <Input
                     type="text"
                     value={newCustomer.gst}
                     onChange={(e) => handleInputChange('gst', e.target.value)}
@@ -297,7 +300,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({ open, onClose
                 <div className="grid grid-cols-3 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                    <input
+                    <Input
                       type="text"
                       value={newCustomer.city}
                       onChange={(e) => handleInputChange('city', e.target.value)}
@@ -307,7 +310,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({ open, onClose
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
-                    <input
+                    <Input
                       type="text"
                       value={newCustomer.state}
                       onChange={(e) => handleInputChange('state', e.target.value)}
@@ -317,7 +320,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({ open, onClose
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Pincode</label>
-                    <input
+                    <Input
                       type="text"
                       value={newCustomer.pincode}
                       onChange={(e) => handleInputChange('pincode', e.target.value)}
@@ -335,28 +338,28 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({ open, onClose
         <div className="p-4 border-t border-gray-200 flex justify-end gap-3 flex-shrink-0">
           {!showCreateForm ? (
             <>
-              <button
+              <Button
                 onClick={onClose}
                 className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={handleSelect}
                 className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition-all"
               >
                 Select
-              </button>
+              </Button>
             </>
           ) : (
             <>
-              <button
+              <Button
                 onClick={() => setShowCreateForm(false)}
                 className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={handleCreateCustomer}
                 className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={!newCustomer.name.trim() || createCustomerMutation.isPending}
@@ -369,7 +372,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({ open, onClose
                 ) : (
                   'Create Customer'
                 )}
-              </button>
+              </Button>
             </>
           )}
         </div>

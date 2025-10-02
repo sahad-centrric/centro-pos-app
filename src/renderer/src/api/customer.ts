@@ -150,7 +150,7 @@ export const customersAPI = {
         disabled: 0
       }
 
-      const response = await api.post('/resource/Customer', payload)
+      const response = await api.post('api/resource/Customer', payload)
 
       // Handle Frappe response structure
       let transformed: Customer | null = null
