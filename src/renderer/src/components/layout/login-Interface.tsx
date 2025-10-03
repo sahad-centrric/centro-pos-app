@@ -9,12 +9,14 @@ import type { SubmitHandler } from 'react-hook-form'
 import { API_Endpoints } from '@renderer/config/endpoints'
 import { useMutationQuery } from '@renderer/hooks/react-query/useReactQuery'
 import { ControlledTextField } from '../form/controlled-text-field'
-import { Lock, UserIcon } from 'lucide-react'
+import { Loader2, Lock, UserIcon } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Form } from '../ui/form'
 import { useAuth } from '@renderer/hooks/useAuth'
 import { toast } from 'sonner'
 import { COMMON_ERROR_MESSAGE } from '@renderer/data/messages'
+import { useAuthStore } from '../../store/useAuthStore';
+
 
 const schema = Yup.object().shape({
   email: Yup.string().required('This field is required'),
@@ -26,6 +28,7 @@ const schema = Yup.object().shape({
 type FormData = Yup.InferType<typeof schema>
 
 const LoginPage: React.FC = () => {
+
   const form = useForm<FormData>({
     resolver: yupResolver(schema),
     defaultValues: {
@@ -34,12 +37,16 @@ const LoginPage: React.FC = () => {
     }
   })
 
-  const { isPending, mutate, error } = useMutationQuery({
+  const { isLoading } = useAuthStore();
+
+
+  const { mutate, error } = useMutationQuery({
     endPoint: API_Endpoints.LOGIN,
     method: 'POST'
   })
 
   const { login } = useAuth()
+
 
   console.log('forms.f', form.formState.errors)
 
@@ -67,7 +74,7 @@ const LoginPage: React.FC = () => {
 
   return (
     <div>
-      <div className="bg-gradient-to-br from-slate-50 to-gray-100 min-h-screen flex items-center justify-center p-6 font-sans relative w-screen">
+      <div className="bg-gradient-to-br from-slate-50 to-gray-100 min-h-screen flex items-center justify-center p-6 font-sans relative">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-30">
           <div className="absolute top-0 left-0 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
@@ -93,25 +100,40 @@ const LoginPage: React.FC = () => {
               </div>
             )}
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
                 <ControlledTextField
                   name="email"
                   leftIcon={<UserIcon />}
                   label={'Email or Username'}
+                  className='block text-sm font-semibold text-gray-700'
                   required
                   control={form.control}
+                  placeholder='Enter your username'
                 />
                 <ControlledTextField
                   type="password"
                   name="password"
                   label={'Password'}
+                  className='block text-sm font-semibold text-gray-700'
                   required
                   control={form.control}
                   leftIcon={<Lock />}
+                  placeholder='Enter your password'
                 />
 
-                <Button type="submit" disabled={isPending}>
-                  Submit
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full py-4 bg-gradient-to-r from-[#334155] to-[#0f172a] text-white font-semibold rounded-xl hover:shadow-2xl transition-all duration-300 modern-shadow disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Signing in...
+                    </>
+                  ) : (
+                    "Sign In"
+                  )}
                 </Button>
               </form>
             </Form>
@@ -127,23 +149,80 @@ const LoginPage: React.FC = () => {
 
           <div className="text-center mt-8 space-y-3">
             <p className="text-sm text-gray-600">
-              Don&apos;t have an account?
-              <span className="text-accent hover:text-accent/80 font-medium transition-all">
-                {' '}
-                Sign up here
-              </span>
+              Don't have an account?
+              <span className="text-accent hover:text-accent/80 font-medium transition-all"> Sign up here</span>
             </p>
             <div className="flex justify-center space-x-6 text-xs text-gray-500">
-              <span className="hover:text-gray-700 transition-all cursor-pointer">
-                Privacy Policy
-              </span>
-              <span className="hover:text-gray-700 transition-all cursor-pointer">
-                Terms of Service
-              </span>
+              <span className="hover:text-gray-700 transition-all cursor-pointer">Privacy Policy</span>
+              <span className="hover:text-gray-700 transition-all cursor-pointer">Terms of Service</span>
               <span className="hover:text-gray-700 transition-all cursor-pointer">Support</span>
             </div>
           </div>
         </div>
+
+        <div className="hidden md:block fixed right-60 top-1/2 transform -translate-y-1/2 z-20">
+          <div className="glass-effect rounded-2xl p-8 w-80 modern-shadow">
+            <div className="space-y-6">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-gradient-to-r from-accent to-blue-600 rounded-2xl mx-auto mb-4 flex items-center justify-center">
+                  <i className="fas fa-shopping-cart text-white text-xl"></i>
+                </div>
+                <h3 className="text-xl font-bold text-primary mb-2">CentroERP POS</h3>
+                <p className="text-gray-600 text-sm">Simple Point of Sale for Traders</p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center mt-1">
+                    <i className="fas fa-barcode text-emerald-600 text-sm"></i>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-800 text-sm">Barcode Scanning</h4>
+                    <p className="text-xs text-gray-600">Quick product scanning and checkout</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mt-1">
+                    <i className="fas fa-receipt text-blue-600 text-sm"></i>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-800 text-sm">Receipt Printing</h4>
+                    <p className="text-xs text-gray-600">Generate and print customer receipts</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mt-1">
+                    <i className="fas fa-credit-card text-purple-600 text-sm"></i>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-800 text-sm">Payment Processing</h4>
+                    <p className="text-xs text-gray-600">Accept cash and card payments</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-r from-accent/10 to-blue-100/50 rounded-xl p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-primary">POS Ready</span>
+                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                </div>
+                <p className="text-xs text-gray-600">System connected to backend</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {isLoading && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+            <div className="glass-effect rounded-2xl p-8 text-center">
+              <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-gray-700 font-medium">Signing you in...</p>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   )

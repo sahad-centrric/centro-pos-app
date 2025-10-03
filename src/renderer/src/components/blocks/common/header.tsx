@@ -1,7 +1,5 @@
 import { Button } from '@renderer/components/ui/button'
 import { usePOSTabStore } from '../../../store/usePOSTabStore'
-import CustomerSearchModal from '../customer/customer-search'
-import { useState } from 'react'
 import { API_Endpoints } from '@renderer/config/endpoints'
 import { useMutationQuery } from '@renderer/hooks/react-query/useReactQuery'
 import { useAuth } from '@renderer/hooks/useAuth'
@@ -9,7 +7,6 @@ import { useAuth } from '@renderer/hooks/useAuth'
 // import { API_Endpoints } from '@renderer/config/endpoints'
 
 const Header: React.FC = () => {
-  const [open, setOpen] = useState(false) // For future use if needed
 
   const { tabs, activeTabId, setActiveTab, closeTab, createNewTab } = usePOSTabStore()
 
@@ -29,7 +26,7 @@ const Header: React.FC = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-6">
           <Button
-            className="px-8 py-3 bg-gradient-to-r from-primary to-slate-700 text-white font-medium rounded-xl hover:shadow-lg transition-all duration-300 flex items-center gap-3 modern-shadow"
+            className="px-8 py-3 bg-gradient-to-r from-primary to-slate-700 text-white font-medium rounded-xl hover:shadow-lg transition-all duration-300 flex items-center gap-3 "
             onClick={handleNewOrder}
           >
             <i className="fas fa-plus text-lg"></i>
@@ -65,18 +62,16 @@ const Header: React.FC = () => {
           </div>
         </div>
 
-        <CustomerSearchModal open={open} onClose={() => setOpen(false)} onSelect={() => {}} />
+        
 
-        {/* Date/Time Display */}
-        {/* <div className="ml-auto text-right bg-white/60 backdrop-blur rounded-xl p-4 shadow-lg">
+        <div className="ml-auto text-right bg-white/60 backdrop-blur rounded-xl p-4 shadow-lg">
           <div className="font-bold text-lg">{new Date().toLocaleDateString()}</div>
           <div className="text-sm text-gray-600">
             {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </div>
-          <button title="OPEN">OPEN MODLE</button>
-        </div> */}
+        </div>
 
-        <div>
+        <div className="ml-2 text-right   rounded-xl p-4 shadow-lg">
           <Button
             variant={'outline'}
             onClick={() =>

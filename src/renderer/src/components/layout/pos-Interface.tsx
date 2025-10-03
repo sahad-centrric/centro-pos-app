@@ -106,9 +106,9 @@ const POSInterface: React.FC = () => {
       <div className="h-screen bg-gray-50 flex w-screen">
         <div className="flex-1 flex flex-col">
           <Header />
-          <button onClick={() => setOpen(true)} className="m-4 p-2 bg-blue-500 text-white rounded">
+          {/* <button onClick={() => setOpen(true)} className="m-4 p-2 bg-blue-500 text-white rounded">
             Open
-          </button>
+          </button> */}
           <ActionButtons />
           <div className="flex-1 overflow-auto">
             <OrderDetails  />
