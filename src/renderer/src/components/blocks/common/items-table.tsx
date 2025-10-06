@@ -9,24 +9,35 @@ import {
   TableRow
 } from '@renderer/components/ui/table'
 import { Plus, X } from 'lucide-react'
-import { CartItem } from '@renderer/types/cart'
 import { useState, useRef, useEffect } from 'react'
-import { useCartItemStore } from '@renderer/store/useCartItemStore'
+import { usePOSTabStore } from '@renderer/store/usePOSTabStore'
 import { useHotkeys } from 'react-hotkeys-hook'
 
 type Props = {
-  items: CartItem[]
   selectedItemId?: string
   onRemoveItem: (value: string) => void
   selectItem: (value: string) => void
+  shouldStartEditing?: boolean
+  onEditingStarted?: () => void
 }
 
 type EditField = 'quantity' | 'uom' | 'discount_percentage'
 
-const ItemsTable: React.FC<Props> = ({ items, selectedItemId, onRemoveItem, selectItem }) => {
-  const { updateItem, activeField, isEditing, setEditingState } = useCartItemStore()
+const ItemsTable: React.FC<Props> = ({ selectedItemId, onRemoveItem, selectItem, shouldStartEditing = false, onEditingStarted }) => {
+  const { getCurrentTabItems, activeTabId, updateItemInTab } = usePOSTabStore();
+  const items = getCurrentTabItems();
+  const [activeField, setActiveField] = useState<EditField>('quantity');
+  const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState<string>('')
   const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (shouldStartEditing && selectedItemId && !isEditing) {
+      setActiveField('quantity');
+      setIsEditing(true);
+      onEditingStarted?.(); // Call the callback to reset the flag
+    }
+  }, [shouldStartEditing, selectedItemId, isEditing, onEditingStarted]);
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -47,7 +58,7 @@ const ItemsTable: React.FC<Props> = ({ items, selectedItemId, onRemoveItem, sele
   }, [isEditing, activeField, selectedItemId, items])
 
   const handleSaveEdit = () => {
-    if (!isEditing || !selectedItemId) return
+    if (!isEditing || !selectedItemId || !activeTabId) return
 
     const item = items.find((i) => i.item_code === selectedItemId)
     if (!item) return
@@ -57,13 +68,13 @@ const ItemsTable: React.FC<Props> = ({ items, selectedItemId, onRemoveItem, sele
     if (activeField !== 'uom') {
       const numValue = parseFloat(editValue)
       if (isNaN(numValue) || numValue < 0) {
-        setEditingState(false, activeField)
+        setIsEditing(false)
         return
       }
       finalValue = numValue
     }
 
-    updateItem(selectedItemId, { [activeField]: finalValue })
+    updateItemInTab(activeTabId, selectedItemId, { [activeField]: finalValue })
 
     // Move to next field automatically
     const fieldOrder: EditField[] = ['quantity', 'uom', 'discount_percentage']
@@ -71,13 +82,14 @@ const ItemsTable: React.FC<Props> = ({ items, selectedItemId, onRemoveItem, sele
 
     if (currentIndex < fieldOrder.length - 1) {
       // Move to next field
-      const nextField = fieldOrder[currentIndex + 1]
+      const nextField = fieldOrder[currentIndex + 1];
       setTimeout(() => {
-        setEditingState(true, nextField)
+        setActiveField(nextField);
+        setIsEditing(true);
       }, 50)
     } else {
       // Done editing this item
-      setEditingState(false, activeField)
+      setIsEditing(false)
     }
   }
 
@@ -92,7 +104,7 @@ const ItemsTable: React.FC<Props> = ({ items, selectedItemId, onRemoveItem, sele
   useHotkeys(
     'Escape',
     () => {
-      setEditingState(false, activeField)
+      setIsEditing(false)
     },
     { preventDefault: true }
   )
@@ -136,11 +148,10 @@ const ItemsTable: React.FC<Props> = ({ items, selectedItemId, onRemoveItem, sele
                         }
                       }}
                       key={item.item_code}
-                      className={`transition-all ${
-                        isSelected
+                      className={`transition-all ${isSelected
                           ? 'bg-gradient-to-r from-blue-50 to-blue-100 border-l-4 border-l-blue-500 shadow-md'
                           : 'hover:bg-gray-50'
-                      }`}
+                        }`}
                     >
                       <TableCell className={isSelected ? 'font-semibold text-blue-900' : ''}>
                         {item.item_code}
@@ -151,11 +162,10 @@ const ItemsTable: React.FC<Props> = ({ items, selectedItemId, onRemoveItem, sele
 
                       {/* Quantity Cell */}
                       <TableCell
-                        className={`${
-                          isSelected && activeField === 'quantity'
+                        className={`${isSelected && activeField === 'quantity'
                             ? 'ring-2 ring-blue-500 ring-inset bg-blue-50'
                             : ''
-                        } ${isSelected ? 'font-medium' : ''}`}
+                          } ${isSelected ? 'font-medium' : ''}`}
                       >
                         {isEditingQuantity ? (
                           <input
@@ -169,7 +179,7 @@ const ItemsTable: React.FC<Props> = ({ items, selectedItemId, onRemoveItem, sele
                                 handleSaveEdit()
                               } else if (e.key === 'Escape') {
                                 e.preventDefault()
-                                setEditingState(false, activeField)
+                                setIsEditing(false)
                               }
                             }}
                             onBlur={handleSaveEdit}
@@ -184,11 +194,10 @@ const ItemsTable: React.FC<Props> = ({ items, selectedItemId, onRemoveItem, sele
 
                       {/* UOM Cell */}
                       <TableCell
-                        className={`${
-                          isSelected && activeField === 'uom'
+                        className={`${isSelected && activeField === 'uom'
                             ? 'ring-2 ring-blue-500 ring-inset bg-blue-50'
                             : ''
-                        } ${isSelected ? 'font-medium' : ''}`}
+                          } ${isSelected ? 'font-medium' : ''}`}
                       >
                         {isEditingUom ? (
                           <input
@@ -202,7 +211,7 @@ const ItemsTable: React.FC<Props> = ({ items, selectedItemId, onRemoveItem, sele
                                 handleSaveEdit()
                               } else if (e.key === 'Escape') {
                                 e.preventDefault()
-                                setEditingState(false, activeField)
+                                setIsEditing(false)
                               }
                             }}
                             onBlur={handleSaveEdit}
@@ -215,11 +224,10 @@ const ItemsTable: React.FC<Props> = ({ items, selectedItemId, onRemoveItem, sele
 
                       {/* Discount Cell */}
                       <TableCell
-                        className={`${
-                          isSelected && activeField === 'discount_percentage'
+                        className={`${isSelected && activeField === 'discount_percentage'
                             ? 'ring-2 ring-blue-500 ring-inset bg-blue-50'
                             : ''
-                        } ${isSelected ? 'font-medium' : ''}`}
+                          } ${isSelected ? 'font-medium' : ''}`}
                       >
                         {isEditingDiscount ? (
                           <input
@@ -233,7 +241,7 @@ const ItemsTable: React.FC<Props> = ({ items, selectedItemId, onRemoveItem, sele
                                 handleSaveEdit()
                               } else if (e.key === 'Escape') {
                                 e.preventDefault()
-                                setEditingState(false, activeField)
+                                setIsEditing(false)
                               }
                             }}
                             onBlur={handleSaveEdit}

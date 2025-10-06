@@ -11,7 +11,7 @@ interface Tab {
     name: string
     gst: string
   }
-  items?: any[]
+  items: any[]  // Add items to each tab
   isEdited?: boolean
   taxAmount?: number
   invoiceData?: any
@@ -28,26 +28,26 @@ interface POSTabStore {
 
   // Tab data methods
   addItemToTab: (tabId: string, item: any) => void
-  removeItemFromTab: (tabId: string, itemIndex: number) => void
-  setTabItems: (tabId: string, items: any[]) => void
+  removeItemFromTab: (tabId: string, itemCode: string) => void
+  updateItemInTab: (tabId: string, itemCode: string, updates: any) => void
   updateTabOrderId: (tabId: string, orderId: string) => void
   updateTabTaxAmount: (tabId: string, taxAmount: number) => void
   setTabEdited: (tabId: string, isEdited: boolean) => void
   updateTabInvoiceData: (tabId: string, invoiceData: any) => void
+  
+  // Customer management methods
+  updateTabCustomer: (tabId: string, customer: { name: string; gst: string }) => void
+  
+  // Helper methods
+  getCurrentTab: () => Tab | undefined
+  getCurrentTabItems: () => any[]
+  getCurrentTabCustomer: () => { name: string; gst: string }
+  itemExistsInTab: (tabId: string, itemCode: string) => boolean
 }
-
-// Mock data
-const mockProducts = [
-  { id: 1, code: 'PROD001', name: 'Sample Product 1', price: 100, uom: 'Each' },
-  { id: 2, code: 'PROD002', name: 'Sample Product 2', price: 200, uom: 'Each' },
-  { id: 3, code: 'PROD003', name: 'Sample Product 3', price: 150, uom: 'Each' }
-]
-
-const mockCustomers = [{ name: 'Walking Customer', gst: 'Not Applicable' }]
 
 export const usePOSTabStore = create<POSTabStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       tabs: [],
       activeTabId: null,
 
@@ -106,31 +106,48 @@ export const usePOSTabStore = create<POSTabStore>()(
         set({ activeTabId: tabId })
       },
 
-      // Tab data methods
+      // Tab item management methods
       addItemToTab: (tabId: string, item: any) => {
         set((state) => ({
           tabs: state.tabs.map((tab) =>
-            tab.id === tabId ? { ...tab, items: [...(tab.items || []), item] } : tab
-          )
-        }))
-      },
-
-      removeItemFromTab: (tabId: string, itemIndex: number) => {
-        set((state) => ({
-          tabs: state.tabs.map((tab) =>
-            tab.id === tabId
-              ? { ...tab, items: (tab.items || []).filter((_, idx) => idx !== itemIndex) }
+            tab.id === tabId 
+              ? { ...tab, items: [...tab.items, item], isEdited: true } 
               : tab
           )
         }))
       },
 
-      setTabItems: (tabId: string, items: any[]) => {
+      removeItemFromTab: (tabId: string, itemCode: string) => {
         set((state) => ({
-          tabs: state.tabs.map((tab) => (tab.id === tabId ? { ...tab, items } : tab))
+          tabs: state.tabs.map((tab) =>
+            tab.id === tabId 
+              ? { 
+                  ...tab, 
+                  items: tab.items.filter(item => item.item_code !== itemCode),
+                  isEdited: true 
+                } 
+              : tab
+          )
         }))
       },
 
+      updateItemInTab: (tabId: string, itemCode: string, updates: any) => {
+        set((state) => ({
+          tabs: state.tabs.map((tab) =>
+            tab.id === tabId 
+              ? { 
+                  ...tab, 
+                  items: tab.items.map(item => 
+                    item.item_code === itemCode ? { ...item, ...updates } : item
+                  ),
+                  isEdited: true 
+                } 
+              : tab
+          )
+        }))
+      },
+
+      // Other tab data methods
       updateTabOrderId: (tabId: string, orderId: string) => {
         set((state) => ({
           tabs: state.tabs.map((tab) => (tab.id === tabId ? { ...tab, orderId } : tab))
@@ -153,6 +170,37 @@ export const usePOSTabStore = create<POSTabStore>()(
         set((state) => ({
           tabs: state.tabs.map((tab) => (tab.id === tabId ? { ...tab, invoiceData } : tab))
         }))
+      },
+
+      // Customer management methods
+      updateTabCustomer: (tabId: string, customer: { name: string; gst: string }) => {
+        set((state) => ({
+          tabs: state.tabs.map((tab) => (tab.id === tabId ? { ...tab, customer } : tab))
+        }))
+      },
+
+      // Helper methods
+      getCurrentTab: () => {
+        const state = get()
+        return state.tabs.find(tab => tab.id === state.activeTabId)
+      },
+
+      getCurrentTabItems: () => {
+        const state = get()
+        const currentTab = state.tabs.find(tab => tab.id === state.activeTabId)
+        return currentTab?.items || []
+      },
+
+      getCurrentTabCustomer: () => {
+        const state = get()
+        const currentTab = state.tabs.find(tab => tab.id === state.activeTabId)
+        return currentTab?.customer || { name: 'Walking Customer', gst: 'Not Applicable' }
+      },
+
+      itemExistsInTab: (tabId: string, itemCode: string) => {
+        const state = get()
+        const tab = state.tabs.find(tab => tab.id === tabId)
+        return tab ? tab.items.some(item => item.item_code === itemCode) : false
       }
     }),
     {
@@ -161,5 +209,3 @@ export const usePOSTabStore = create<POSTabStore>()(
     }
   )
 )
-
-export { mockProducts, mockCustomers }

@@ -1,12 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useCreateCustomer, useCustomers } from '@renderer/hooks/useCustomer'
-import { ArrowLeft, Plus, Search } from 'lucide-react'
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { ArrowLeft, Plus, Search, User } from 'lucide-react'
 import { createPortal } from 'react-dom'
-import { Input } from '@renderer/components/ui/input'
-import { Button } from '@renderer/components/ui/button'
 
-// Default walking customer
+import { useCreateCustomer, useCustomers } from '@renderer/hooks/useCustomer'
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter
+} from '@renderer/components/ui/dialog'
+import { Button } from '@renderer/components/ui/button'
+import { Input } from '@renderer/components/ui/input'
+import { ScrollArea } from '@renderer/components/ui/scroll-area'
+import { Badge } from '@renderer/components/ui/badge'
+import { Separator } from '@renderer/components/ui/separator'
+
+// Default walking customer (unchanged)
 const walkingCustomer = { name: 'Walking Customer', gst: 'Not Applicable' }
 
 interface CustomerSearchModalProps {
@@ -16,10 +28,16 @@ interface CustomerSearchModalProps {
 }
 
 const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({ open, onClose, onSelect }) => {
+  // View switching (UI-only change)
+  const [view, setView] = useState<'search' | 'create'>('search')
+
+  // Search state (kept)
   const [search, setSearch] = useState('')
+
+  // Selection index (kept)
   const [selectedIndex, setSelectedIndex] = useState(-1)
-  const [mounted, setMounted] = useState(false)
-  const [showCreateForm, setShowCreateForm] = useState(false)
+
+  // Create form state (kept)
   const [newCustomer, setNewCustomer] = useState({
     name: '',
     email: '',
@@ -31,63 +49,60 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({ open, onClose
     pincode: ''
   })
 
-  // Fetch customers from API
+  // Data hooks (kept)
   const { data: apiCustomers, isLoading, error } = useCustomers()
   const createCustomerMutation = useCreateCustomer()
 
-  useEffect(() => {
-    setMounted(true)
-    return () => setMounted(false)
-  }, [])
-
-  // Combine walking customer with API customers
-  // API now returns normalized customer data
+  // Build customer list (kept)
   const customersFromAPI = apiCustomers || []
-
-  // Transform normalized customers to match our expected format
-  const transformedCustomers = customersFromAPI.map((customer) => ({
-    name: customer.name,
-    gst: customer.gst || 'Not Available'
-  }))
-
-  const allCustomers = [walkingCustomer, ...transformedCustomers]
-
-  // Filter customers based on search
-  const filtered = allCustomers.filter(
-    (c) => c.name && c.name.toLowerCase().includes(search.toLowerCase())
+  const transformedCustomers = useMemo(
+    () =>
+      customersFromAPI.map((customer: any) => ({
+        name: customer.name,
+        gst: customer.gst || 'Not Available'
+      })),
+    [customersFromAPI]
+  )
+  const allCustomers = useMemo(
+    () => [walkingCustomer, ...transformedCustomers],
+    [transformedCustomers]
   )
 
+  // Filter (kept)
+  const filtered = useMemo(() => {
+    const term = search.trim().toLowerCase()
+    if (!term) return allCustomers
+    return allCustomers.filter((c) => c.name && c.name.toLowerCase().includes(term))
+  }, [allCustomers, search])
+
+  // Keyboard scroll support (UI-only)
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([])
+  useEffect(() => {
+    if (selectedIndex >= 0 && itemRefs.current[selectedIndex]) {
+      itemRefs.current[selectedIndex]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }
+  }, [selectedIndex])
+
+  // Handlers (logic kept)
   const handleSelect = () => {
     if (selectedIndex >= 0 && filtered[selectedIndex]) {
       onSelect(filtered[selectedIndex])
-    }
-  }
-
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose()
+      resetAndClose()
     }
   }
 
   const handleCreateCustomer = async () => {
     try {
-      // Validate required field
       if (!newCustomer.name.trim()) {
         alert('Customer name is required')
         return
       }
 
-      console.log('Creating customer:', newCustomer)
-
       const createdCustomer = await createCustomerMutation.mutateAsync(newCustomer)
 
-      console.log('Customer created successfully:', createdCustomer)
-
-      // Show success message
       alert(`Customer "${newCustomer.name}" created successfully!`)
 
-      // Close form and reset
-      setShowCreateForm(false)
+      // Reset create form (kept)
       setNewCustomer({
         name: '',
         email: '',
@@ -99,288 +114,285 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({ open, onClose
         pincode: ''
       })
 
-      // Auto-select the newly created customer
+      // Auto-select newly created (kept)
       const newCustomerForSelection = {
-        name: createdCustomer.name || createdCustomer.name || newCustomer.name,
+        name: createdCustomer?.name || newCustomer.name,
         gst: 'Not Available'
       }
 
-      // Close modal and pass the new customer
       onSelect(newCustomerForSelection)
-      onClose()
-    } catch (error: any) {
-      console.error('Error creating customer:', error)
+      resetAndClose()
+    } catch (err: any) {
+      console.error('Error creating customer:', err)
       alert('Failed to create customer. Please try again.')
     }
   }
 
-  const handleInputChange = (field: string, value: string) => {
-    setNewCustomer((prev) => ({
-      ...prev,
-      [field]: value
-    }))
+  // UI helpers
+  const resetAndClose = () => {
+    setView('search')
+    setSearch('')
+    setSelectedIndex(-1)
+    onClose()
   }
 
-  if (!open || !mounted) return null
+  if (!open) return null
 
-  const modalContent = (
-    <div
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[99999] flex items-center justify-center p-4"
-      onClick={handleBackdropClick}
-      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
-    >
-      <div
-        className={`bg-white rounded-2xl shadow-2xl flex flex-col ${
-          showCreateForm ? 'w-[500px] max-h-[700px]' : 'w-96 max-h-[600px]'
-        }`}
-        style={{
-          maxWidth: showCreateForm ? '500px' : '24rem',
-          maxHeight: showCreateForm ? '700px' : '600px'
-        }}
-      >
-        {/* Header */}
-        <div className="p-4 border-b border-gray-200 flex-shrink-0">
-          <div className="flex items-center gap-2 mb-3">
-            <h3 className="text-lg font-semibold text-gray-800 flex-1">
-              {showCreateForm ? 'Create New Customer' : 'Select Customer'}
-            </h3>
-            {!showCreateForm && (
-              <Button
-                onClick={() => setShowCreateForm(true)}
-                className="w-8 h-8 bg-accent text-white rounded-full flex items-center justify-center hover:bg-accent/90 transition-all"
-                title="Create New Customer"
-              >
-                <Plus className="h-4 w-4 text-gray-600" />
-                </Button>
-            )}
-            {showCreateForm && (
-              <Button
-                onClick={() => setShowCreateForm(false)}
-                className="w-8 h-8 bg-gray-200 text-gray-600 rounded-full flex items-center justify-center hover:bg-gray-300 transition-all"
-                title="Back to Search"
-              >
-              <ArrowLeft className="h-4 w-4 text-gray-600" />
-              </Button>
-            )}
-          </div>
+  return createPortal(
+    <Dialog open={open} onOpenChange={(isOpen) => (isOpen ? undefined : resetAndClose())}>
+      <DialogContent className="max-w-2xl max-h-[90vh] bg-white">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
+            {view === 'search' ? 'Select Customer' : 'Create New Customer'}
+          </DialogTitle>
+        </DialogHeader>
 
-          {!showCreateForm ? (
-            <div className="relative">
+        {view === 'search' ? (
+          <>
+            {/* Search Bar with New button (ProductModal style) */}
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
-                type="text"
                 placeholder="Search customers..."
-                className="w-full p-3 pl-10 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-transparent"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'ArrowDown')
-                    setSelectedIndex((i) => Math.min(i + 1, filtered.length - 1))
-                  if (e.key === 'ArrowUp') setSelectedIndex((i) => Math.max(i - 1, 0))
-                  if (e.key === 'Enter') handleSelect()
-                  if (e.key === 'Escape') onClose()
+                onChange={(e) => {
+                  setSearch(e.target.value)
+                  setSelectedIndex(-1)
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowDown') {
+                    e.preventDefault()
+                    setSelectedIndex((prev) => Math.min(prev + 1, filtered.length - 1))
+                  } else if (e.key === 'ArrowUp') {
+                    e.preventDefault()
+                    setSelectedIndex((prev) => Math.max(prev - 1, 0))
+                  } else if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleSelect()
+                  } else if (e.key === 'Escape') {
+                    resetAndClose()
+                  }
+                }}
+                className="pl-10 pr-24"
                 autoFocus
               />
-              <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setView('create')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-7"
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                New
+              </Button>
             </div>
-          ) : null}
-        </div>
 
-        {/* Content Area */}
-        <div className="flex-1 overflow-hidden">
-          {!showCreateForm ? (
-            /* Search Results */
-            <div className="overflow-y-auto p-2 h-full max-h-[400px]">
+            {/* Results */}
+            <ScrollArea className="h-[300px]">
               {isLoading ? (
                 <div className="flex items-center justify-center h-32">
-                  <div className="text-gray-500">Loading customers...</div>
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
+                  <span className="ml-2 text-sm text-muted-foreground">Loading customers...</span>
                 </div>
               ) : error ? (
-                <div className="flex items-center justify-center h-32">
-                  <div className="text-red-500 text-center">
-                    <div>Error loading customers.</div>
-                    <div className="text-xs mt-1">
-                      Status: {(error as any)?.response?.status || 'Unknown'}
-                    </div>
-                    <div className="text-xs">
-                      {' '}
-                      {(error as any)?.response?.data?.message ||
-                        (error as any)?.message ||
-                        'Unknown error'}
-                    </div>
-                  </div>
+                <div className="flex items-center justify-center h-32 text-red-500 text-sm">
+                  Error loading customers
                 </div>
               ) : filtered.length === 0 ? (
-                <div className="flex items-center justify-center h-32">
-                  <div className="text-gray-500">No customers found.</div>
+                <div className="flex flex-col items-center justify-center h-32 text-muted-foreground text-sm">
+                  No customers found
                 </div>
               ) : (
-                filtered.map((c, idx) => (
-                  <div
-                    key={c.name}
-                    className={`p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-all ${selectedIndex === idx ? 'bg-accent text-white' : ''}`}
-                    onClick={() => {
-                      setSelectedIndex(idx)
-                      handleSelect()
-                    }}
-                    onMouseEnter={() => setSelectedIndex(idx)}
-                  >
-                    <div className="font-semibold text-sm">{c.name}</div>
+                <div className="space-y-1">
+                  {filtered.map((c, index) => (
                     <div
-                      className={`text-xs ${selectedIndex === idx ? 'text-white/80' : 'text-gray-600'}`}
+                      key={c.name}
+                      ref={(el) => {
+                        itemRefs.current[index] = el
+                      }}
+                      className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${selectedIndex === index ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
+                        }`}
+                      onClick={() => {
+                        setSelectedIndex(index)
+                        handleSelect()
+                      }}
+                      onMouseEnter={() => setSelectedIndex(index)}
                     >
-                      GST: {c.gst || 'Not Available'}
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-medium text-sm leading-tight">{c.name}</h4>
+                          <p
+                            className={`text-xs mt-1 ${selectedIndex === index
+                                ? 'text-primary-foreground/80'
+                                : 'text-muted-foreground'
+                              }`}
+                          >
+                            GST: {c.gst || 'Not Available'}
+                          </p>
+                        </div>
+                        <Badge variant={selectedIndex === index ? 'secondary' : 'outline'}>
+                          Customer
+                        </Badge>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  ))}
+                </div>
               )}
+            </ScrollArea>
+
+            <DialogFooter className="mt-4">
+              <Button variant="outline" onClick={resetAndClose}>
+                Cancel
+              </Button>
+            </DialogFooter>
+          </>
+        ) : (
+          <>
+            {/* Create Header */}
+            <div className="flex items-center justify-between mb-2">
+              <Button variant="outline" size="sm" onClick={() => setView('search')}>
+                <ArrowLeft className="h-4 w-4 mr-1" />
+                Back
+              </Button>
             </div>
-          ) : (
-            /* Create Form */
-            <div className="overflow-y-auto h-full">
-              <div className="p-4 space-y-4 pb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Customer Name *
-                  </label>
-                  <input
-                    type="text"
+            <Separator className="mb-4" />
+
+            {/* Create Form (same fields, new layout) */}
+            <ScrollArea className="h-[400px] pr-4">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Customer Name *</label>
+                  <Input
                     value={newCustomer.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
+                    onChange={(e) =>
+                      setNewCustomer((p) => ({
+                        ...p,
+                        name: e.target.value
+                      }))
+                    }
                     placeholder="Enter customer name"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Email</label>
                     <Input
                       type="email"
                       value={newCustomer.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
+                      onChange={(e) =>
+                        setNewCustomer((p) => ({
+                          ...p,
+                          email: e.target.value
+                        }))
+                      }
                       placeholder="email@example.com"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Phone</label>
                     <Input
-                      type="tel"
                       value={newCustomer.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
-                      className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
+                      onChange={(e) =>
+                        setNewCustomer((p) => ({
+                          ...p,
+                          phone: e.target.value
+                        }))
+                      }
                       placeholder="Phone number"
                     />
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">GST Number</label>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">GST Number</label>
                   <Input
-                    type="text"
                     value={newCustomer.gst}
-                    onChange={(e) => handleInputChange('gst', e.target.value)}
-                    className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
+                    onChange={(e) =>
+                      setNewCustomer((p) => ({
+                        ...p,
+                        gst: e.target.value
+                      }))
+                    }
                     placeholder="GST number (optional)"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Address</label>
                   <textarea
                     value={newCustomer.address}
-                    onChange={(e) => handleInputChange('address', e.target.value)}
-                    className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
-                    placeholder="Enter address"
+                    onChange={(e) =>
+                      setNewCustomer((p) => ({
+                        ...p,
+                        address: e.target.value
+                      }))
+                    }
+                    className="w-full p-3 border rounded-md"
                     rows={3}
+                    placeholder="Enter address"
                   />
                 </div>
 
-                <div className="grid grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">City</label>
                     <Input
-                      type="text"
                       value={newCustomer.city}
-                      onChange={(e) => handleInputChange('city', e.target.value)}
-                      className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
-                      placeholder="City"
+                      onChange={(e) =>
+                        setNewCustomer((p) => ({
+                          ...p,
+                          city: e.target.value
+                        }))
+                      }
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">State</label>
                     <Input
-                      type="text"
                       value={newCustomer.state}
-                      onChange={(e) => handleInputChange('state', e.target.value)}
-                      className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
-                      placeholder="State"
+                      onChange={(e) =>
+                        setNewCustomer((p) => ({
+                          ...p,
+                          state: e.target.value
+                        }))
+                      }
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Pincode</label>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Pincode</label>
                     <Input
-                      type="text"
                       value={newCustomer.pincode}
-                      onChange={(e) => handleInputChange('pincode', e.target.value)}
-                      className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
-                      placeholder="Pincode"
+                      onChange={(e) =>
+                        setNewCustomer((p) => ({
+                          ...p,
+                          pincode: e.target.value
+                        }))
+                      }
                     />
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
+            </ScrollArea>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-gray-200 flex justify-end gap-3 flex-shrink-0">
-          {!showCreateForm ? (
-            <>
-              <Button
-                onClick={onClose}
-                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSelect}
-                className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition-all"
-              >
-                Select
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                onClick={() => setShowCreateForm(false)}
-                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
-              >
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={() => setView('search')}>
                 Cancel
               </Button>
               <Button
                 onClick={handleCreateCustomer}
-                className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={!newCustomer.name.trim() || createCustomerMutation.isPending}
               >
-                {createCustomerMutation.isPending ? (
-                  <span className="flex items-center gap-2">
-                    <i className="fas fa-spinner fa-spin"></i>
-                    Creating...
-                  </span>
-                ) : (
-                  'Create Customer'
-                )}
+                {createCustomerMutation.isPending ? 'Creating...' : 'Create Customer'}
               </Button>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
+            </DialogFooter>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>,
+    document.body
   )
-
-  return createPortal(modalContent, document.body)
 }
 
 export default CustomerSearchModal

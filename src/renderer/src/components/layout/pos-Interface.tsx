@@ -8,98 +8,97 @@ import Header from '../blocks/common/header'
 import DiscountSection from '../blocks/products/discount-section'
 import ProductSearchModal from '../blocks/products/product-modal'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useCartItemStore } from '@renderer/store/useCartItemStore'
+import { usePOSTabStore } from '@renderer/store/usePOSTabStore'
 import { toast } from 'sonner'
-import { EditableField } from '@renderer/types/cart'
 
 const POSInterface: React.FC = () => {
   const [open, setOpen] = useState(false)
+  const [selectedItemId, setSelectedItemId] = useState<string | undefined>()
+  const [shouldStartEditing, setShouldStartEditing] = useState(false)
+
   const {
-    items,
-    selectedItemId,
-    addItem,
-    removeItem,
-    selectItem,
-    navigateItem,
-    itemExists,
-    setEditingState
-  } = useCartItemStore()
+    getCurrentTabItems,
+    addItemToTab,
+    removeItemFromTab,
+    activeTabId,
+    itemExistsInTab,
+    getCurrentTab
+  } = usePOSTabStore();
+
+  const items = getCurrentTabItems();
+  const currentTab = getCurrentTab();
+
+  const itemExists = (itemCode: string) => {
+    if (!activeTabId) return false;
+    return itemExistsInTab(activeTabId, itemCode);
+  };
+
+  // Add item to current tab
+  const addItem = (item: any) => {
+    if (!activeTabId) {
+      toast.error('No active tab. Please create a new order first.');
+      return;
+    }
+
+    if (itemExists(item.item_code)) {
+      toast.error('Item already in cart');
+      return;
+    }
+
+    addItemToTab(activeTabId, item);
+    setSelectedItemId(item.item_code);
+
+    // Trigger auto-editing
+    setShouldStartEditing(true);
+  };
+
+  // Remove item from current tab
+  const removeItem = (itemCode: string) => {
+    if (!activeTabId) return;
+
+    removeItemFromTab(activeTabId, itemCode);
+
+    if (selectedItemId === itemCode) {
+      setSelectedItemId(undefined);
+    }
+  };
+
+  // Select item
+  const selectItem = (itemCode: string) => {
+    setSelectedItemId(itemCode);
+  };
+
+  // Navigate items (up/down)
+  const navigateItem = (direction: 'up' | 'down') => {
+    if (items.length === 0) return;
+
+    const currentIndex = selectedItemId
+      ? items.findIndex(item => item.item_code === selectedItemId)
+      : -1;
+
+    let newIndex;
+    if (direction === 'down') {
+      newIndex = currentIndex < items.length - 1 ? currentIndex + 1 : 0;
+    } else {
+      newIndex = currentIndex > 0 ? currentIndex - 1 : items.length - 1;
+    }
+
+    setSelectedItemId(items[newIndex].item_code);
+  };
 
   useHotkeys('shift', () => setOpen(true))
-  useHotkeys(
-    'backspace',
-    () => {
-      const state = useCartItemStore.getState()
-      if (!state.isEditing) {
-        removeItem(selectedItemId)
-      }
-    },
-    { enableOnFormTags: false }
-  )
-
-  useHotkeys(
-    'down',
-    () => {
-      const state = useCartItemStore.getState()
-      if (!state.isEditing) {
-        navigateItem('down')
-      }
-    },
-    { enableOnFormTags: false }
-  )
-
-  useHotkeys(
-    'up',
-    () => {
-      const state = useCartItemStore.getState()
-      if (!state.isEditing) {
-        navigateItem('up')
-      }
-    },
-    { enableOnFormTags: false }
-  )
-
-  useHotkeys(
-    'space',
-    () => {
-      const state = useCartItemStore.getState()
-      if (!state.isEditing && state.selectedItemId) {
-        setEditingState(true, state.activeField)
-      }
-    },
-    { enableOnFormTags: false, preventDefault: true }
-  )
-
-  useHotkeys(
-    'left',
-    () => {
-      const state = useCartItemStore.getState()
-      if (!state.isEditing && state.selectedItemId) {
-        const fieldOrder: EditableField[] = ['quantity', 'uom', 'discount_percentage']
-        const currentIndex = fieldOrder.indexOf(state.activeField)
-        if (currentIndex > 0) {
-          state.setEditingState(false, fieldOrder[currentIndex - 1])
-        }
-      }
-    },
-    { enableOnFormTags: false }
-  )
-
-  useHotkeys(
-    'right',
-    () => {
-      const state = useCartItemStore.getState()
-      if (!state.isEditing && state.selectedItemId) {
-        const fieldOrder: EditableField[] = ['quantity', 'uom', 'discount_percentage']
-
-        const currentIndex = fieldOrder.indexOf(state.activeField)
-        if (currentIndex < fieldOrder.length - 1) {
-          state.setEditingState(false, fieldOrder[currentIndex + 1])
-        }
-      }
-    },
-    { enableOnFormTags: false }
-  )
+  useHotkeys('backspace', () => {
+    if (selectedItemId) {
+      removeItem(selectedItemId);
+    }
+  }, { enableOnFormTags: false })
+  useHotkeys('down', () => navigateItem('down'), { enableOnFormTags: false })
+  useHotkeys('up', () => navigateItem('up'), { enableOnFormTags: false })
+  useHotkeys('space', () => {
+    if (selectedItemId) {
+      toast.info('Press Space on a selected item to edit');
+    }
+  }, { enableOnFormTags: false, preventDefault: true })
 
   return (
     <Fragment>
@@ -111,35 +110,26 @@ const POSInterface: React.FC = () => {
           </button> */}
           <ActionButtons />
           <div className="flex-1 overflow-auto">
-            <OrderDetails  />
+            <OrderDetails />
             <ItemsTable
-              items={items}
               onRemoveItem={removeItem}
               selectedItemId={selectedItemId}
               selectItem={selectItem}
+              shouldStartEditing={shouldStartEditing}
+              onEditingStarted={() => setShouldStartEditing(false)}
             />
             <DiscountSection />
           </div>
-          <PaymentAlert orderNumber={''} />
+          <PaymentAlert orderNumber={currentTab?.orderId || ''} />
         </div>
         <div className="w-80 border-l bg-white">
-          <ProductDetail selectedProduct="" />
+          <ProductDetail selectedProduct={selectedItemId || ''} />
         </div>
       </div>
       <ProductSearchModal
         open={open}
         onOpenChange={setOpen}
-        onSelect={(product) => {
-          if (itemExists(product.item_code)) {
-            toast.error('Item already in cart')
-          } else {
-            addItem({ ...product, quantity: 1, discount_percentage: 0, uom: 'pcs' })
-            // Automatically start editing quantity after adding item
-            setTimeout(() => {
-              useCartItemStore.getState().setEditingState(true, 'quantity')
-            }, 100)
-          }
-        }}
+        onSelect={addItem}
       />
     </Fragment>
   )

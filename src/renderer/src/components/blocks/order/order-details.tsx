@@ -19,16 +19,16 @@ import { usePOSTabStore } from '@renderer/store/usePOSTabStore'
 const OrderDetails: React.FC = () => {
 
   const [showCustomerModal, setShowCustomerModal] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState({ name: 'Walking Customer', gst: 'Not Applicable' });
+  const { activeTabId, getCurrentTabCustomer, updateTabCustomer } = usePOSTabStore()
 
-  const { tabs, activeTabId } = usePOSTabStore();
-  const currentTab = tabs.find(tab => tab.id === activeTabId);
+  const selectedCustomer = getCurrentTabCustomer()
 
   const handleCustomerSelect = (customer: any) => {
-    setSelectedCustomer(customer);
-    setShowCustomerModal(false);
-    console.log('Customer selected:', customer);
-  };
+    if (activeTabId) {
+      updateTabCustomer(activeTabId, customer)
+    }
+    setShowCustomerModal(false)
+  }
 
 
   return (
