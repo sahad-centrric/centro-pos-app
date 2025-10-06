@@ -13,9 +13,8 @@ import { Loader2, Lock, UserIcon } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Form } from '../ui/form'
 import { useAuth } from '@renderer/hooks/useAuth'
-import { toast } from 'sonner'
-import { COMMON_ERROR_MESSAGE } from '@renderer/data/messages'
 import { useAuthStore } from '../../store/useAuthStore';
+import { useAlertStore } from '../../store/useAlertStore'
 
 
 const schema = Yup.object().shape({
@@ -24,6 +23,9 @@ const schema = Yup.object().shape({
     .required('This field is required')
     .min(5, 'Password must be at least 5 characters long')
 })
+
+const addSuccess = useAlertStore((s) => s.addSuccess)
+const addError = useAlertStore((s) => s.addError)
 
 type FormData = Yup.InferType<typeof schema>
 
@@ -62,10 +64,11 @@ const LoginPage: React.FC = () => {
       },
       {
         onSuccess: (res) => {
+          addSuccess('Signed in successfully')
           login(res)
         },
         onError: (err) => {
-          toast.error(COMMON_ERROR_MESSAGE)
+          addError('Login failed', 'Please check your credentials')
           console.error('Login failed:', err)
         }
       }

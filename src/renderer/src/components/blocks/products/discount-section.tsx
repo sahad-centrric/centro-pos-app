@@ -1,52 +1,93 @@
+import React, { useMemo } from 'react'
 import { Button } from '@renderer/components/ui/button'
+import { usePOSTabStore } from '@renderer/store/usePOSTabStore'
+
+
 
 type Props = unknown
 
-const DiscountSection: React.FC<Props> = () => (
-  <div className="p-4">
-    <div className="flex gap-4 mb-4">
-      <Button variant="outline" className="flex items-center gap-2">
-        <span className="text-blue-500">%</span>
-        Discount
-        <span className="text-xs bg-gray-200 px-1 rounded">Ctrl+D</span>
-      </Button>
-      <Button variant="outline" className="flex items-center gap-2">
-        <span className="text-green-500">$</span>
-        Offer
-        <span className="text-xs bg-gray-200 px-1 rounded">Ctrl+O</span>
-      </Button>
-      <Button variant="outline" className="flex items-center gap-2">
-        <span className="text-orange-500">%</span>
-        Commission
-        <span className="text-xs bg-gray-200 px-1 rounded">Ctrl+C</span>
-      </Button>
-    </div>
+const DiscountSection: React.FC<Props> = () => {
+  const { getCurrentTabItems } = usePOSTabStore()
+  const items = getCurrentTabItems()
 
-    <div className="grid grid-cols-5 gap-4 items-end">
-      <div className="text-center">
-        <div className="text-sm text-gray-600">Untaxed</div>
-        <div className="text-lg font-semibold">$2,417.10</div>
-      </div>
-      <div className="text-center">
-        <div className="text-sm text-gray-600">Discount</div>
-        <div className="text-lg font-semibold text-red-500">-$80.90</div>
-      </div>
-      <div className="text-center">
-        <div className="text-sm text-gray-600">VAT (10%)</div>
-        <div className="text-lg font-semibold">$233.62</div>
-      </div>
-      <div className="text-center">
-        <div className="text-sm text-gray-600">Rounding</div>
-        <div className="text-lg font-semibold">$0.18</div>
-      </div>
-      <div className="text-center">
-        <div className="text-sm text-white bg-gray-800 p-2 rounded">
-          <div className="text-sm">Total</div>
-          <div className="text-xl font-bold">$2,570.00</div>
+  const { subtotal, totalDiscount, vatAmount, rounding, finalTotal } = useMemo(() => {
+    const safeNum = (v: any): number => (typeof v === 'number' && !isNaN(v) ? v : 0)
+
+    let subtotal = 0
+    let totalDiscount = 0
+
+        for (const item of items) {
+      const quantity = safeNum(item.quantity) || 1
+      const unitPrice = safeNum(item.standard_rate) || 0
+      const discountPct = Math.min(Math.max(safeNum(item.discount_percentage), 0), 100)
+
+      const lineGross = quantity * unitPrice
+      const lineDiscount = (lineGross * discountPct) / 100
+
+      subtotal += lineGross
+      totalDiscount += lineDiscount
+    }
+
+    const vatRate = 0.10
+    const vatAmount = (subtotal - totalDiscount) * vatRate
+
+    const totalBeforeRounding = subtotal - totalDiscount + vatAmount
+    const rounding = Math.round(totalBeforeRounding) - totalBeforeRounding
+    const finalTotal = Math.round(totalBeforeRounding)
+
+    return { subtotal, totalDiscount, vatAmount, rounding, finalTotal }
+  }, [items])
+
+
+    return (
+      <div className="p-4">
+        <div className="flex gap-4 mb-4">
+          <Button variant="outline" className="flex items-center gap-2">
+            <span className="text-blue-500">%</span>
+            Discount
+            <span className="text-xs bg-gray-200 px-1 rounded">Ctrl+D</span>
+          </Button>
+          <Button variant="outline" className="flex items-center gap-2">
+            <span className="text-green-500">$</span>
+            Offer
+            <span className="text-xs bg-gray-200 px-1 rounded">Ctrl+O</span>
+          </Button>
+          <Button variant="outline" className="flex items-center gap-2">
+            <span className="text-orange-500">%</span>
+            Commission
+            <span className="text-xs bg-gray-200 px-1 rounded">Ctrl+C</span>
+          </Button>
+        </div>
+
+     <div className="p-2">
+      <div className="grid grid-cols-5 gap-3 text-sm mb-3">
+        <div className="text-center p-3 bg-white/80 rounded-xl shadow-lg">
+          <div className="text-gray-500 font-medium text-xs">Untaxed</div>
+          <div className="font-bold text-base">${subtotal.toFixed(2)}</div>
+        </div>
+        <div className="text-center p-3 bg-white/80 rounded-xl shadow-lg">
+          <div className="text-gray-500 font-medium text-xs">Discount</div>
+          <div className="font-bold text-base text-red-600">-${totalDiscount.toFixed(2)}</div>
+        </div>
+        <div className="text-center p-3 bg-white/80 rounded-xl shadow-lg">
+          <div className="text-gray-500 font-medium text-xs">VAT (10%)</div>
+          <div className="font-bold text-base">${vatAmount.toFixed(2)}</div>
+        </div>
+        <div className="text-center p-3 bg-white/80 rounded-xl shadow-lg">
+          <div className="text-gray-500 font-medium text-xs">Rounding</div>
+          <div className="font-bold text-base">${rounding.toFixed(2)}</div>
+        </div>
+        <div className="text-center p-3 bg-gradient-to-r from-primary to-slate-700 text-white rounded-xl shadow-xl">
+          <div className="text-white/80 font-medium text-xs">Total</div>
+          <div className="font-bold text-xl">${finalTotal.toFixed(2)}</div>
         </div>
       </div>
+
+      {/* Alerts area - uncomment if you have the alert store/component wired */}
+      {/* <AlertSection alerts={alerts} onDismiss={removeAlert} /> */}
     </div>
-  </div>
-)
+      </div>
+    )
+  }
 
 export default DiscountSection

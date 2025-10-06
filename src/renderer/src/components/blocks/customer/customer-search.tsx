@@ -17,6 +17,7 @@ import { Input } from '@renderer/components/ui/input'
 import { ScrollArea } from '@renderer/components/ui/scroll-area'
 import { Badge } from '@renderer/components/ui/badge'
 import { Separator } from '@renderer/components/ui/separator'
+import { useAlertStore } from '@renderer/store/useAlertStore'
 
 // Default walking customer (unchanged)
 const walkingCustomer = { name: 'Walking Customer', gst: 'Not Applicable' }
@@ -100,7 +101,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({ open, onClose
 
       const createdCustomer = await createCustomerMutation.mutateAsync(newCustomer)
 
-      alert(`Customer "${newCustomer.name}" created successfully!`)
+      useAlertStore.getState().addSuccess('Customer created successfully')
 
       // Reset create form (kept)
       setNewCustomer({

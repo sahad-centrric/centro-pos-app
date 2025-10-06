@@ -10,6 +10,7 @@ import ProductSearchModal from '../blocks/products/product-modal'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { usePOSTabStore } from '@renderer/store/usePOSTabStore'
 import { toast } from 'sonner'
+import AlertCenter from '../blocks/common/alert-center'
 
 const POSInterface: React.FC = () => {
   const [open, setOpen] = useState(false)
@@ -131,6 +132,7 @@ const POSInterface: React.FC = () => {
         onOpenChange={setOpen}
         onSelect={addItem}
       />
+      <AlertCenter/>
     </Fragment>
   )
 }
