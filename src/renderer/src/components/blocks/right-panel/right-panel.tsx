@@ -1,221 +1,182 @@
-// import { useState, useEffect } from 'react';
-// import { FaHistory, FaBoxes, FaUserCircle } from 'react-icons/fa';
-// import InfoBoxGrid from './InfoBoxGrid';
-// import RightPanelProductTab from './RightPanelProductTab';
-// import RightPanelCustomerTab from './RightPanelCustomerTab';
-// import RightPanelOrdersTab from './RightPanelOrdersTab';
-// import RightPanelPrintTab from './RightPanelPrintTab';
-// import { useCartStore } from '../store/useCartStore';
+import React, { useEffect, useMemo } from 'react';
+import { FaHistory, FaBoxes, FaUserCircle } from 'react-icons/fa';
+import RightPanelProductTab from './right-panel-product-tab';
+import RightPanelCustomerTab from './right-panel-customertab';
+import RightPanelOrdersTab from './right-panel-orderstab';
+import RightPanelPrintTab from './right-panel-printab';
+import { useRightPanelStore } from '@renderer/store/useRightPanelStore';
+import { usePOSTabStore } from '@renderer/store/usePOSTabStore';
+import type { InfoItem, InvoiceSummary } from '@renderer/types/pos';
 
-// // Type definitions
-// interface MostOrderedItem {
-//   name: string;
-//   code: string;
-//   units: string;
-//   amount: string;
-// }
+const RightPanel: React.FC = () => {
+  const {
+    activeRightPanelTab,
+    setActiveRightPanelTab,
+    selectedProduct,
+    selectedCustomer,
+    orderActionTrigger,
+    setOrderActionTrigger,
+  } = useRightPanelStore();
 
-// interface InfoBoxItem {
-//   label: string;
-//   value: string;
-//   color: string;
-//   bg: string;
-// }
+  const { tabs, activeTabId, openTab } = usePOSTabStore();
 
-// interface Product {
-//   id?: string;
-//   name?: string;
-//   code?: string;
-//   price?: number;
-//   quantity?: number;
-//   [key: string]: any;
-// }
+  // Get current tab data
+  const currentTab = useMemo(
+    () => tabs.find(tab => tab.id === activeTabId),
+    [tabs, activeTabId]
+  );
 
-// interface Customer {
-//   id?: string;
-//   name?: string;
-//   [key: string]: any;
-// }
+  // Auto-switch to product tab when a product is selected
+  useEffect(() => {
+    if (selectedProduct) {
+      setActiveRightPanelTab('product');
+    }
+  }, [selectedProduct, setActiveRightPanelTab]);
 
-// interface CartStore {
-//   activeRightPanelTab: string;
-//   setActiveRightPanelTab: (tab: string) => void;
-//   selectedProduct: Product | null;
-//   selectedCustomer: Customer | null;
-//   orderActionTrigger: string | null;
-//   setOrderActionTrigger: (trigger: string | null) => void;
-// }
+  // Auto-switch to customer tab when a customer is selected
+  useEffect(() => {
+    if (selectedCustomer && selectedCustomer.name !== 'Walking Customer') {
+      setActiveRightPanelTab('customer');
+    }
+  }, [selectedCustomer, setActiveRightPanelTab]);
 
-// interface RightPanelProductTabProps {
-//   upsellTab: string;
-//   setUpsellTab: (tab: string) => void;
-//   productInfo: InfoBoxItem[];
-//   selectedProduct: Product | null;
-// }
+  // Auto-switch to orders tab when order action happens
+  useEffect(() => {
+    if (orderActionTrigger) {
+      setActiveRightPanelTab('orders');
+      setOrderActionTrigger(null);
+    }
+  }, [orderActionTrigger, setActiveRightPanelTab, setOrderActionTrigger]);
 
-// interface RightPanelCustomerTabProps {
-//   customerInfo: InfoBoxItem[];
-//   mostOrderedData: MostOrderedItem[];
-// }
+  // Mock data
+  const productInfo: InfoItem[] = [
+    { label: 'Unit Price', value: '$799.00', color: 'text-blue-600', bg: 'from-blue-50 to-indigo-50' },
+    { label: 'On Hand', value: '3 units', color: 'text-red-600', bg: 'from-red-50 to-pink-50' },
+    { label: 'Cost', value: '$650.00', color: 'text-orange-600', bg: 'from-orange-50 to-yellow-50' },
+    { label: 'Margin', value: '18.6%', color: 'text-purple-600', bg: 'from-purple-50 to-pink-50' },
+  ];
 
-// const mostOrderedData: MostOrderedItem[] = [
-//   {
-//     name: 'iPhone 15 Pro',
-//     code: 'IPH15-PRO',
-//     units: '15 units',
-//     amount: '$13,485',
-//   },
-//   {
-//     name: 'Galaxy S24',
-//     code: 'SGS24-256',
-//     units: '12 units',
-//     amount: '$9,588',
-//   },
-// ];
+  const customerInfo: InfoItem[] = [
+    { label: 'Total Invoiced', value: '$12,450.00', color: 'text-blue-600', bg: 'from-blue-50 to-indigo-50' },
+    { label: 'Amount Due', value: '$2,570.00', color: 'text-red-600', bg: 'from-red-50 to-pink-50' },
+    { label: 'Last Payment', value: '$1,200.00', color: 'text-green-600', bg: 'from-green-50 to-emerald-50' },
+    { label: 'Commission', value: '$125.40', color: 'text-orange-600', bg: 'from-orange-50 to-yellow-50' },
+  ];
 
-// const RightPanel: React.FC = () => {
-//   // Get active tab from cart store
-//   const { 
-//     activeRightPanelTab, 
-//     setActiveRightPanelTab, 
-//     selectedProduct, 
-//     selectedCustomer, 
-//     orderActionTrigger, 
-//     setOrderActionTrigger 
-//   }: CartStore = useCartStore();
-  
-//   const [upsellTab, setUpsellTab] = useState<string>('upsell');
-//   const [isInitialized, setIsInitialized] = useState<boolean>(false);
+  const mostOrderedData = [
+    { name: 'iPhone 15 Pro', code: 'IPH15-PRO', units: '15 units', amount: '$13,485' },
+    { name: 'Galaxy S24', code: 'SGS24-256', units: '12 units', amount: '$9,588' },
+  ];
 
-//   // Auto-switch to product tab when a product is selected
-//   useEffect(() => {
-//     if (selectedProduct) {
-//       setActiveRightPanelTab('product');
-//     }
-//   }, [selectedProduct, setActiveRightPanelTab]);
+  // Mock invoices - replace with your actual API call later
+  const invoices: InvoiceSummary[] = [
+    { name: 'POS-2025-001', status: 'Paid', customer: 'John Doe', posting_date: '2025-01-20', grand_total: 1847.5 },
+    { name: 'POS-2025-002', status: 'Draft', customer: 'Walking Customer', posting_date: '2025-01-21', grand_total: 999.99 },
+  ];
 
-//   // Auto-switch to customer tab when customer is selected
-//   useEffect(() => {
-//     if (selectedCustomer && selectedCustomer.name !== 'Walking Customer') {
-//       setActiveRightPanelTab('customer');
-//     }
-//   }, [selectedCustomer, setActiveRightPanelTab]);
+  const handleInvoiceClick = (invoice: InvoiceSummary) => {
+    // Open the invoice in a new tab and switch to print view
+    openTab(invoice.name, invoice);
+    setActiveRightPanelTab('print');
+  };
 
-//   // Auto-switch to orders tab when order action happens
-//   useEffect(() => {
-//     if (orderActionTrigger) {
-//       setActiveRightPanelTab('orders');
-//       // Reset the trigger after switching
-//       setOrderActionTrigger(null);
-//     }
-//   }, [orderActionTrigger, setActiveRightPanelTab, setOrderActionTrigger]);
+  return (
+    <div className="w-full h-full bg-white/60 backdrop-blur border-l border-white/20 flex flex-col relative">
+      {/* Top Tabs */}
+      <div className="flex border-b border-gray-200/60 bg-white/80 overflow-x-auto">
+        <button
+          className={`px-4 py-3 font-semibold text-sm border-b-3 ${
+            activeRightPanelTab === 'product' 
+              ? 'border-accent bg-white/90 text-accent' 
+              : 'border-transparent text-gray-500 hover:text-black hover:bg-white/40 transition-all'
+          }`}
+          onClick={() => setActiveRightPanelTab('product')}
+        >
+          Product
+        </button>
+        <button
+          className={`px-4 py-3 font-medium text-sm border-b-3 ${
+            activeRightPanelTab === 'customer' 
+              ? 'border-accent bg-white/90 text-accent font-semibold' 
+              : 'border-transparent text-gray-500 hover:text-black hover:bg-white/40 transition-all'
+          }`}
+          onClick={() => setActiveRightPanelTab('customer')}
+        >
+          Customer
+        </button>
+        <button
+          className={`px-4 py-3 font-medium text-sm border-b-3 ${
+            activeRightPanelTab === 'print' 
+              ? 'border-accent bg-white/90 text-accent font-semibold' 
+              : 'border-transparent text-gray-500 hover:text-black hover:bg-white/40 transition-all'
+          }`}
+          onClick={() => setActiveRightPanelTab('print')}
+        >
+          Print
+        </button>
+        <button
+          className={`px-4 py-3 font-medium text-sm border-b-3 ${
+            activeRightPanelTab === 'orders' 
+              ? 'border-accent bg-white/90 text-accent font-semibold' 
+              : 'border-transparent text-gray-500 hover:text-black hover:bg-white/40 transition-all'
+          }`}
+          onClick={() => setActiveRightPanelTab('orders')}
+        >
+          Orders
+        </button>
+        <button className="px-4 py-3 font-medium text-gray-500 hover:text-black hover:bg-white/40 transition-all text-sm">
+          Cash In/Out
+        </button>
+      </div>
 
-//   useEffect(() => {
-//     // Only set default tab once when app first loads
-//     if (!isInitialized) {
-//       setActiveRightPanelTab('orders');
-//       setIsInitialized(true);
-//       return;
-//     }
+      {/* Quick Action Controls - Only show for Product tab */}
+      {activeRightPanelTab === 'product' && (
+        <div className="p-4 bg-white/90 border-b border-gray-200/60">
+          <div className="grid grid-cols-3 gap-3">
+            <button className="px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-medium rounded-xl hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
+              <FaHistory />
+              History
+            </button>
+            <button className="px-4 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-sm font-medium rounded-xl hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
+              <FaBoxes />
+              Stock
+            </button>
+            <button className="px-4 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm font-medium rounded-xl hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
+              <FaUserCircle />
+              Account
+            </button>
+          </div>
+        </div>
+      )}
 
-//     // After initialization, only auto-switch when there are actual selections
-//     if (selectedProduct || selectedCustomer || orderActionTrigger) {
-//       return; // Something is selected, don't change
-//     }
-//   }, [isInitialized, selectedProduct, selectedCustomer, orderActionTrigger, setActiveRightPanelTab]);
+      {/* Tab Content */}
+      {activeRightPanelTab === 'product' && (
+        <RightPanelProductTab
+          productInfo={productInfo}
+          selectedProduct={selectedProduct}
+        />
+      )}
 
-//   // InfoBoxGrid data for each tab
-//   const productInfo: InfoBoxItem[] = [
-//     { label: 'Unit Price', value: '$799.00', color: 'text-blue-600', bg: 'from-blue-50 to-indigo-50' },
-//     { label: 'On Hand', value: '3 units', color: 'text-red-600', bg: 'from-red-50 to-pink-50' },
-//     { label: 'Cost', value: '$650.00', color: 'text-orange-600', bg: 'from-orange-50 to-yellow-50' },
-//     { label: 'Margin', value: '18.6%', color: 'text-purple-600', bg: 'from-purple-50 to-pink-50' },
-//   ];
+      {activeRightPanelTab === 'customer' && (
+        <RightPanelCustomerTab
+          customer={currentTab?.customer}
+          customerInfo={customerInfo}
+          mostOrderedData={mostOrderedData}
+        />
+      )}
 
-//   const customerInfo: InfoBoxItem[] = [
-//     { label: 'Total Invoiced', value: '$12,450.00', color: 'text-blue-600', bg: 'from-blue-50 to-indigo-50' },
-//     { label: 'Amount Due', value: '$2,570.00', color: 'text-red-600', bg: 'from-red-50 to-pink-50' },
-//     { label: 'Last Payment', value: '$1,200.00', color: 'text-green-600', bg: 'from-green-50 to-emerald-50' },
-//     { label: 'Commission', value: '$125.40', color: 'text-orange-600', bg: 'from-orange-50 to-yellow-50' },
-//   ];
+      {activeRightPanelTab === 'print' && (
+        <RightPanelPrintTab order={currentTab?.invoiceData} />
+      )}
 
-//   return (
-//     <div className="w-full h-full bg-white/60 backdrop-blur border-l border-white/20 flex flex-col relative">
-//       {/* Top Tabs */}
-//       <div className="flex border-b border-gray-200/60 bg-white/80 overflow-x-auto">
-//         <button
-//           className={`px-4 py-3 font-semibold text-sm border-b-3 ${activeRightPanelTab === 'product' ? 'border-accent bg-white/90 text-accent' : 'border-transparent text-gray-500 hover:text-black hover:bg-white/40 transition-all'}`}
-//           onClick={() => setActiveRightPanelTab('product')}
-//         >
-//           Product
-//         </button>
-//         <button
-//           className={`px-4 py-3 font-medium text-sm border-b-3 ${activeRightPanelTab === 'customer' ? 'border-accent bg-white/90 text-accent font-semibold' : 'border-transparent text-gray-500 hover:text-black hover:bg-white/40 transition-all'}`}
-//           onClick={() => setActiveRightPanelTab('customer')}
-//         >
-//           Customer
-//         </button>
-//         <button 
-//           className={`px-4 py-3 font-medium text-sm border-b-3 ${activeRightPanelTab === 'print' ? 'border-accent bg-white/90 text-accent font-semibold' : 'border-transparent text-gray-500 hover:text-black hover:bg-white/40 transition-all'}`}
-//           onClick={() => setActiveRightPanelTab('print')}
-//         >
-//           Print
-//         </button>
-//         <button
-//           className={`px-4 py-3 font-medium text-sm border-b-3 ${activeRightPanelTab === 'orders' ? 'border-accent bg-white/90 text-accent font-semibold' : 'border-transparent text-gray-500 hover:text-black hover:bg-white/40 transition-all'}`}
-//           onClick={() => setActiveRightPanelTab('orders')}
-//         >
-//           Orders
-//         </button>
-//         <button className="px-4 py-3 font-medium text-gray-500 hover:text-black hover:bg-white/40 transition-all text-sm">
-//           Cash In/Out
-//         </button>
-//       </div>
+      {activeRightPanelTab === 'orders' && (
+        <RightPanelOrdersTab 
+          invoices={invoices} 
+          onOpenInvoice={handleInvoiceClick} 
+        />
+      )}
+    </div>
+  );
+};
 
-//       {/* Quick Action Controls - Only show for Product tab */}
-//       {activeRightPanelTab === 'product' && (
-//         <div className="p-4 bg-white/90 border-b border-gray-200/60">
-//           <div className="grid grid-cols-3 gap-3">
-//             <button className="px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-medium rounded-xl hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
-//               <FaHistory />
-//               History
-//             </button>
-//             <button className="px-4 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-sm font-medium rounded-xl hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
-//               <FaBoxes />
-//               Stock
-//             </button>
-//             <button className="px-4 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm font-medium rounded-xl hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
-//               <FaUserCircle />
-//               Account
-//             </button>
-//           </div>
-//         </div>
-//       )}
-
-//       {/* Tab Content */}
-//       {activeRightPanelTab === 'product' && (
-//         <RightPanelProductTab
-//           upsellTab={upsellTab}
-//           setUpsellTab={setUpsellTab}
-//           productInfo={productInfo}
-//           selectedProduct={selectedProduct}
-//         />
-//       )}
-//       {activeRightPanelTab === 'customer' && (
-//         <RightPanelCustomerTab
-//           customerInfo={customerInfo}
-//           mostOrderedData={mostOrderedData}
-//         />
-//       )}
-//       {activeRightPanelTab === 'print' && (
-//         <RightPanelPrintTab />
-//       )}
-//       {activeRightPanelTab === 'orders' && (
-//         <RightPanelOrdersTab />
-//       )}
-//       {/* TODO: Add modular components for Invoice, Cash In/Out tabs in the future */}
-//     </div>
-//   );
-// };
-
-// export default RightPanel;
+export default RightPanel;

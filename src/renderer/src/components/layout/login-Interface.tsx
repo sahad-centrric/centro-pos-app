@@ -24,8 +24,7 @@ const schema = Yup.object().shape({
     .min(5, 'Password must be at least 5 characters long')
 })
 
-const addSuccess = useAlertStore((s) => s.addSuccess)
-const addError = useAlertStore((s) => s.addError)
+
 
 type FormData = Yup.InferType<typeof schema>
 
@@ -38,6 +37,9 @@ const LoginPage: React.FC = () => {
       password: ''
     }
   })
+
+  const addSuccess = useAlertStore((s) => s.addSuccess)
+  const addError = useAlertStore((s) => s.addError)
 
   const { isLoading } = useAuthStore();
 
