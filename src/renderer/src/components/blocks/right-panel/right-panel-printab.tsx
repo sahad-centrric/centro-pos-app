@@ -2,7 +2,7 @@ import React from 'react';
 import type { InvoiceSummary } from '../../../types/pos';
 
 interface Props {
- order: InvoiceSummary | null; // Your invoiceData from the tab
+  order: InvoiceSummary | null; // Your invoiceData from the tab
 }
 
 const RightPanelPrintTab: React.FC<Props> = ({ order }) => {

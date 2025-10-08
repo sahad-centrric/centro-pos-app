@@ -1,10 +1,13 @@
 import React, { useEffect, useMemo } from 'react';
 import { FaHistory, FaBoxes, FaUserCircle } from 'react-icons/fa';
+
+
 import RightPanelProductTab from './right-panel-product-tab';
 import RightPanelCustomerTab from './right-panel-customertab';
 import RightPanelOrdersTab from './right-panel-orderstab';
 import RightPanelPrintTab from './right-panel-printab';
 import { useRightPanelStore } from '@renderer/store/useRightPanelStore';
+
 import { usePOSTabStore } from '@renderer/store/usePOSTabStore';
 import type { InfoItem, InvoiceSummary } from '@renderer/types/pos';
 
@@ -78,41 +81,37 @@ const RightPanel: React.FC = () => {
       {/* Top Tabs */}
       <div className="flex border-b border-gray-200/60 bg-white/80 ">
         <button
-          className={`px-4 py-3 font-semibold text-sm border-b-3 ${
-            activeRightPanelTab === 'product' 
-              ? 'border-accent bg-white/90 text-accent' 
+          className={`px-4 py-3 font-semibold text-sm border-b-3 ${activeRightPanelTab === 'product'
+              ? 'border-accent bg-white/90 text-accent'
               : 'border-transparent text-gray-500 hover:text-black hover:bg-white/40 transition-all'
-          }`}
+            }`}
           onClick={() => setActiveRightPanelTab('product')}
         >
           Product
         </button>
         <button
-          className={`px-4 py-3 font-medium text-sm border-b-3 ${
-            activeRightPanelTab === 'customer' 
-              ? 'border-accent bg-white/90 text-accent font-semibold' 
+          className={`px-4 py-3 font-medium text-sm border-b-3 ${activeRightPanelTab === 'customer'
+              ? 'border-accent bg-white/90 text-accent font-semibold'
               : 'border-transparent text-gray-500 hover:text-black hover:bg-white/40 transition-all'
-          }`}
+            }`}
           onClick={() => setActiveRightPanelTab('customer')}
         >
           Customer
         </button>
         <button
-          className={`px-4 py-3 font-medium text-sm border-b-3 ${
-            activeRightPanelTab === 'print' 
-              ? 'border-accent bg-white/90 text-accent font-semibold' 
+          className={`px-4 py-3 font-medium text-sm border-b-3 ${activeRightPanelTab === 'print'
+              ? 'border-accent bg-white/90 text-accent font-semibold'
               : 'border-transparent text-gray-500 hover:text-black hover:bg-white/40 transition-all'
-          }`}
+            }`}
           onClick={() => setActiveRightPanelTab('print')}
         >
           Print
         </button>
         <button
-          className={`px-4 py-3 font-medium text-sm border-b-3 ${
-            activeRightPanelTab === 'orders' 
-              ? 'border-accent bg-white/90 text-accent font-semibold' 
+          className={`px-4 py-3 font-medium text-sm border-b-3 ${activeRightPanelTab === 'orders'
+              ? 'border-accent bg-white/90 text-accent font-semibold'
               : 'border-transparent text-gray-500 hover:text-black hover:bg-white/40 transition-all'
-          }`}
+            }`}
           onClick={() => setActiveRightPanelTab('orders')}
         >
           Orders
@@ -145,7 +144,7 @@ const RightPanel: React.FC = () => {
       {/* Tab Content */}
       {activeRightPanelTab === 'product' && (
         <RightPanelProductTab
-        selectedProduct={selectedProduct}
+          selectedProduct={selectedProduct}
         />
       )}
 
@@ -162,9 +161,9 @@ const RightPanel: React.FC = () => {
       )}
 
       {activeRightPanelTab === 'orders' && (
-        <RightPanelOrdersTab 
-          invoices={invoices} 
-          onOpenInvoice={handleInvoiceClick} 
+        <RightPanelOrdersTab
+          invoices={invoices}
+          onOpenInvoice={handleInvoiceClick}
         />
       )}
     </div>

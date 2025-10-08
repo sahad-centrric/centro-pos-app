@@ -1,14 +1,16 @@
 import { Fragment, useState } from 'react'
 import ActionButtons from '../blocks/common/action-buttons'
+
+import { useHotkeys } from 'react-hotkeys-hook'
+import { usePOSTabStore } from '@renderer/store/usePOSTabStore'
+import { toast } from 'sonner'
+
 import OrderDetails from '../blocks/order/order-details'
 import ItemsTable from '../blocks/common/items-table'
 import PaymentAlert from '../blocks/payment/payment-alert'
 import Header from '../blocks/common/header'
 import DiscountSection from '../blocks/products/discount-section'
 import ProductSearchModal from '../blocks/products/product-modal'
-import { useHotkeys } from 'react-hotkeys-hook'
-import { usePOSTabStore } from '@renderer/store/usePOSTabStore'
-import { toast } from 'sonner'
 import AlertCenter from '../blocks/common/alert-center'
 import RightPanel from '../blocks/right-panel/right-panel'
 

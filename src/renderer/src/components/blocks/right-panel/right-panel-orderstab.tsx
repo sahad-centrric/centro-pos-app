@@ -1,5 +1,6 @@
 import React from 'react';
 import { FaReceipt, FaUser, FaCalendar } from 'react-icons/fa';
+
 import type { InvoiceSummary } from '../../../types/pos';
 
 interface Props {

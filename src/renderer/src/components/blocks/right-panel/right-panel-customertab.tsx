@@ -1,5 +1,6 @@
 import React from 'react';
 import { FaUserCircle } from 'react-icons/fa';
+
 import InfoBoxGrid from '../common/InfoBoxGrid';
 import type { InfoItem } from '@renderer/types/pos';
 

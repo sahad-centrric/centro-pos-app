@@ -1,7 +1,8 @@
 import React from 'react';
 import { FaPlus, FaExchangeAlt } from 'react-icons/fa';
+
 import InfoBoxGrid from '../common/InfoBoxGrid';
-import type { InfoItem} from '../../../types/pos';
+import type { InfoItem } from '../../../types/pos';
 
 interface Props {
   selectedProduct: any | null;
@@ -9,29 +10,29 @@ interface Props {
 
 const RightPanelProductTab: React.FC<Props> = ({ selectedProduct }) => {
   const productInfo: InfoItem[] = selectedProduct ? [
-    { 
-      label: 'Unit Price', 
-      value: `$${(selectedProduct.standard_rate || 0).toFixed(2)}`, 
-      color: 'text-blue-600', 
-      bg: 'from-blue-50 to-indigo-50' 
+    {
+      label: 'Unit Price',
+      value: `$${(selectedProduct.standard_rate || 0).toFixed(2)}`,
+      color: 'text-blue-600',
+      bg: 'from-blue-50 to-indigo-50'
     },
-    { 
-      label: 'On Hand', 
-      value: `${selectedProduct.actual_qty || 0} units`, 
-      color: 'text-red-600', 
-      bg: 'from-red-50 to-pink-50' 
+    {
+      label: 'On Hand',
+      value: `${selectedProduct.actual_qty || 0} units`,
+      color: 'text-red-600',
+      bg: 'from-red-50 to-pink-50'
     },
-    { 
-      label: 'Cost', 
-      value: `$${(selectedProduct.valuation_rate || 0).toFixed(2)}`, 
-      color: 'text-orange-600', 
-      bg: 'from-orange-50 to-yellow-50' 
+    {
+      label: 'Cost',
+      value: `$${(selectedProduct.valuation_rate || 0).toFixed(2)}`,
+      color: 'text-orange-600',
+      bg: 'from-orange-50 to-yellow-50'
     },
-    { 
-      label: 'UOM', 
-      value: selectedProduct.stock_uom || 'N/A', 
-      color: 'text-purple-600', 
-      bg: 'from-purple-50 to-pink-50' 
+    {
+      label: 'UOM',
+      value: selectedProduct.stock_uom || 'N/A',
+      color: 'text-purple-600',
+      bg: 'from-purple-50 to-pink-50'
     },
   ] : [
     { label: 'Unit Price', value: '$0.00', color: 'text-blue-600', bg: 'from-blue-50 to-indigo-50' },
@@ -57,7 +58,7 @@ const RightPanelProductTab: React.FC<Props> = ({ selectedProduct }) => {
             </div>
           )}
         </div>
-        
+
         {selectedProduct ? (
           <div className="space-y-2">
             <div className="font-bold text-lg text-primary">{selectedProduct.item_code}</div>
