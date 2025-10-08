@@ -5,6 +5,7 @@ import * as Yup from 'yup'
 import type { SubmitHandler } from 'react-hook-form'
 import { Search, Plus, ArrowLeft, Wand2, Package } from 'lucide-react'
 import { toast } from 'sonner'
+import { useRightPanelStore } from '@renderer/store/useRightPanelStore'
 
 import {
   Dialog,
@@ -452,6 +453,7 @@ const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
   onSelect
 }) => {
   const [view, setView] = useState<'search' | 'create'>('search')
+  const setSelectedProduct = useRightPanelStore((state) => state.setSelectedProduct)
 
   const handleClose = () => {
     setView('search')
@@ -460,11 +462,13 @@ const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
 
   const handleProductSelect = (product: Product) => {
     onSelect(product)
+    setSelectedProduct(product)
     handleClose()
   }
 
   const handleProductCreated = (product: Product) => {
     onSelect(product)
+    setSelectedProduct(product)
     handleClose()
   }
 

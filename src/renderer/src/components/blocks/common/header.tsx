@@ -1,8 +1,8 @@
 import { Button } from '@renderer/components/ui/button'
 import { usePOSTabStore } from '../../../store/usePOSTabStore'
-import { API_Endpoints } from '@renderer/config/endpoints'
-import { useMutationQuery } from '@renderer/hooks/react-query/useReactQuery'
-import { useAuth } from '@renderer/hooks/useAuth'
+// import { API_Endpoints } from '@renderer/config/endpoints'
+// import { useMutationQuery } from '@renderer/hooks/react-query/useReactQuery'
+// import { useAuth } from '@renderer/hooks/useAuth'
 // import { useMutationQuery } from '@renderer/hooks/react-query/useReactQuery'
 // import { API_Endpoints } from '@renderer/config/endpoints'
 
@@ -14,12 +14,12 @@ const Header: React.FC = () => {
     createNewTab()
   }
 
-  const { mutate } = useMutationQuery({
-    endPoint: API_Endpoints.LOGOUT,
-    method: 'POST'
-  })
+  // const { mutate } = useMutationQuery({
+  //   endPoint: API_Endpoints.LOGOUT,
+  //   method: 'POST'
+  // })
 
-  const { logout } = useAuth()
+  // const { logout } = useAuth()
 
   return (
     <div className="p-3 glass-effect border-b border-white/20">
@@ -71,7 +71,7 @@ const Header: React.FC = () => {
           </div>
         </div>
 
-        <div className="ml-2 text-right   rounded-xl p-4 shadow-lg">
+        {/* <div className="ml-2 text-right   rounded-xl p-4 shadow-lg">
           <Button
             variant={'outline'}
             onClick={() =>
@@ -90,7 +90,7 @@ const Header: React.FC = () => {
           >
             Logout
           </Button>
-        </div>
+        </div> */}
       </div>
     </div>
   )

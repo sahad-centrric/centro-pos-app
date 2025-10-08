@@ -4,6 +4,7 @@ import { ArrowLeft, Plus, Search, User } from 'lucide-react'
 import { createPortal } from 'react-dom'
 
 import { useCreateCustomer, useCustomers } from '@renderer/hooks/useCustomer'
+import { useRightPanelStore } from '@renderer/store/useRightPanelStore'
 
 import {
   Dialog,
@@ -29,6 +30,9 @@ interface CustomerSearchModalProps {
 }
 
 const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({ open, onClose, onSelect }) => {
+
+  const setSelectedCustomer = useRightPanelStore((state) => state.setSelectedCustomer)
+
   // View switching (UI-only change)
   const [view, setView] = useState<'search' | 'create'>('search')
 
@@ -87,7 +91,9 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({ open, onClose
   // Handlers (logic kept)
   const handleSelect = () => {
     if (selectedIndex >= 0 && filtered[selectedIndex]) {
-      onSelect(filtered[selectedIndex])
+      const customer = filtered[selectedIndex]
+      onSelect(customer)
+      setSelectedCustomer(customer)
       resetAndClose()
     }
   }
@@ -122,6 +128,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({ open, onClose
       }
 
       onSelect(newCustomerForSelection)
+      setSelectedCustomer(newCustomerForSelection)
       resetAndClose()
     } catch (err: any) {
       console.error('Error creating customer:', err)

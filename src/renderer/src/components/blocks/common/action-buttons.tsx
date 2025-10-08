@@ -163,7 +163,7 @@ const ActionButtons: React.FC = () => {
               Pay <span className="text-xs opacity-80 bg-white/20 px-2 py-1 rounded-lg">Ctrl+P</span>
             </Button>
             <Button className="px-2 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-medium rounded-xl hover:shadow-2xl transition-all duration-300 flex items-center gap-3  text-xs">
-              <i className="fas fa-undo text-lg"></i>
+              <i className="fas fa-rotate-left text-lg"></i>
               Return <span className="text-xs opacity-80 bg-white/20 px-2 py-1 rounded-lg">Ctrl+R</span>
             </Button>
           </div>

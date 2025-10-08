@@ -49,13 +49,6 @@ const RightPanel: React.FC = () => {
   }, [orderActionTrigger, setActiveRightPanelTab, setOrderActionTrigger]);
 
   // Mock data
-  const productInfo: InfoItem[] = [
-    { label: 'Unit Price', value: '$799.00', color: 'text-blue-600', bg: 'from-blue-50 to-indigo-50' },
-    { label: 'On Hand', value: '3 units', color: 'text-red-600', bg: 'from-red-50 to-pink-50' },
-    { label: 'Cost', value: '$650.00', color: 'text-orange-600', bg: 'from-orange-50 to-yellow-50' },
-    { label: 'Margin', value: '18.6%', color: 'text-purple-600', bg: 'from-purple-50 to-pink-50' },
-  ];
-
   const customerInfo: InfoItem[] = [
     { label: 'Total Invoiced', value: '$12,450.00', color: 'text-blue-600', bg: 'from-blue-50 to-indigo-50' },
     { label: 'Amount Due', value: '$2,570.00', color: 'text-red-600', bg: 'from-red-50 to-pink-50' },
@@ -83,7 +76,7 @@ const RightPanel: React.FC = () => {
   return (
     <div className="w-full h-full bg-white/60 backdrop-blur border-l border-white/20 flex flex-col relative">
       {/* Top Tabs */}
-      <div className="flex border-b border-gray-200/60 bg-white/80 overflow-x-auto">
+      <div className="flex border-b border-gray-200/60 bg-white/80 ">
         <button
           className={`px-4 py-3 font-semibold text-sm border-b-3 ${
             activeRightPanelTab === 'product' 
@@ -152,8 +145,7 @@ const RightPanel: React.FC = () => {
       {/* Tab Content */}
       {activeRightPanelTab === 'product' && (
         <RightPanelProductTab
-          productInfo={productInfo}
-          selectedProduct={selectedProduct}
+        selectedProduct={selectedProduct}
         />
       )}
 

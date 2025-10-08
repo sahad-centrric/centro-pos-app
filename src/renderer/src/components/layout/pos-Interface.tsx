@@ -123,7 +123,7 @@ const POSInterface: React.FC = () => {
           </div>
           <PaymentAlert orderNumber={currentTab?.orderId || ''} />
         </div>
-        <div className="w-[24rem] border-l bg-white">
+        <div className="w-[32rem] border-l bg-white">
           <RightPanel />
         </div>
       </div>
