@@ -1,14 +1,38 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FaPlus, FaExchangeAlt } from 'react-icons/fa';
 
 import InfoBoxGrid from '../common/InfoBoxGrid';
 import type { InfoItem } from '../../../types/pos';
+import { cn } from '@renderer/lib/utils';
+
+
+
+export interface PurchaseHistoryItem {
+  invoiceNumber: string;
+  date: string;
+  quantity: number;
+  amount: string;
+}
+
+export interface RecommendationItem {
+  code: string;
+  name: string;
+  price: string;
+  available: number;
+  colorTheme: 'emerald' | 'blue' | 'purple' | 'orange';
+}
 
 interface Props {
   selectedProduct: any | null;
+  purchaseHistory: PurchaseHistoryItem[];
+  upsellProducts: RecommendationItem[];
+  alternativeProducts: RecommendationItem[];
 }
 
-const RightPanelProductTab: React.FC<Props> = ({ selectedProduct }) => {
+const RightPanelProductTab: React.FC<Props> = ({ selectedProduct, purchaseHistory, upsellProducts, alternativeProducts }) => {
+
+  const [upsellTab, setUpsellTab] = useState<'upsell' | 'alternative'>('upsell');
+
   const productInfo: InfoItem[] = selectedProduct ? [
     {
       label: 'Unit Price',
@@ -42,7 +66,7 @@ const RightPanelProductTab: React.FC<Props> = ({ selectedProduct }) => {
   ];
 
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div className="flex-1 overflow-hidden">
       {/* Product Overview */}
       <div className="p-4 border-b border-gray-200/60 bg-white/90">
         <div className="w-full h-32 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl mb-4 flex items-center justify-center">
@@ -103,78 +127,154 @@ const RightPanelProductTab: React.FC<Props> = ({ selectedProduct }) => {
         <div className="text-xs text-gray-500 mb-2">
           Previous purchases of {selectedProduct?.item_name || 'selected product'}
         </div>
-        <div className="space-y-2">
-          <div className="p-2 bg-gradient-to-r from-gray-50 to-slate-50 rounded-lg text-xs">
-            <div className="flex justify-between items-center">
-              <div className="font-semibold text-primary">POS-2024-892</div>
-              <div className="text-gray-600">Dec 15, 2024</div>
+        <div className="space-y-2 max-h-[150px] overflow-y-auto pr-2">
+          {purchaseHistory.map((item, idx) => (
+            <div key={idx} className="p-2 bg-gradient-to-r from-gray-50 to-slate-50 rounded-lg text-xs">
+              <div className="flex justify-between items-center">
+                <div className="font-semibold text-primary">{item.invoiceNumber}</div>
+                <div className="text-gray-600">{item.date}</div>
+              </div>
+              <div className="flex justify-between mt-1">
+                <span className="text-gray-600">Qty: {item.quantity}</span>
+                <span className="font-semibold text-green-600">{item.amount}</span>
+              </div>
             </div>
-            <div className="flex justify-between mt-1">
-              <span className="text-gray-600">Qty: 1</span>
-              <span className="font-semibold text-green-600">$799.00</span>
-            </div>
-          </div>
-          <div className="p-2 bg-gradient-to-r from-gray-50 to-slate-50 rounded-lg text-xs">
-            <div className="flex justify-between items-center">
-              <div className="font-semibold text-primary">POS-2024-654</div>
-              <div className="text-gray-600">Oct 22, 2024</div>
-            </div>
-            <div className="flex justify-between mt-1">
-              <span className="text-gray-600">Qty: 2</span>
-              <span className="font-semibold text-green-600">$1,598.00</span>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
 
       {/* Upsell & Alternative Products */}
       <div className="bg-white/90">
-        <div className="p-4">
-          <h4 className="font-bold text-gray-800 mb-3">Recommendations</h4>
-          <div className="space-y-3">
-            <div className="p-3 bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl border border-emerald-200">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="font-bold text-sm text-primary">SGS24-CASE</div>
-                  <div className="text-xs text-gray-600">Galaxy S24 Premium Case</div>
-                  <div className="text-xs text-green-600 font-semibold mt-1">$49.99</div>
-                </div>
-                <button className="px-3 py-1 bg-emerald-500 text-white text-xs rounded-lg hover:bg-emerald-600 transition-all flex items-center">
-                  <FaPlus className="mr-1" />
-                  Add
-                </button>
-              </div>
-            </div>
+        <div className="flex border-b border-gray-200/60">
+          <button
+            className={cn(
+              "flex-1 px-4 py-3 text-sm transition-all border-b-2",
+              upsellTab === 'upsell'
+                ? "border-emerald-500 bg-emerald-50 text-emerald-700 font-semibold"
+                : "border-transparent text-gray-500 font-medium"
+            )}
+            onClick={() => setUpsellTab('upsell')}
+          >
+            Upsell Products
+          </button>
+          <button
+            className={cn(
+              "flex-1 px-4 py-3 text-sm transition-all border-b-2",
+              upsellTab === 'alternative'
+                ? "border-purple-500 bg-purple-50 text-purple-700 font-semibold"
+                : "border-transparent text-gray-500 font-medium"
+            )}
+            onClick={() => setUpsellTab('alternative')}
+          >
+            Alternatives
+          </button>
+        </div>
 
-            <div className="p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-200">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="font-bold text-sm text-primary">SGS24-512</div>
-                  <div className="text-xs text-gray-600">Galaxy S24 (512GB)</div>
-                  <div className="text-xs text-purple-600 font-semibold mt-1">$949.00</div>
+        {/* Upsell Products Tab Content */}
+        {upsellTab === 'upsell' && (
+          <div className="p-4">
+            <div className="space-y-3 max-h-[200px] overflow-y-auto pr-2">
+              {upsellProducts.map((product, idx) => (
+                <div
+                  key={idx}
+                  className={cn(
+                    "p-3 rounded-xl border",
+                    product.colorTheme === 'emerald' && "bg-gradient-to-r from-emerald-50 to-green-50 border-emerald-200",
+                    product.colorTheme === 'blue' && "bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200",
+                    product.colorTheme === 'purple' && "bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200",
+                    product.colorTheme === 'orange' && "bg-gradient-to-r from-orange-50 to-red-50 border-orange-200"
+                  )}
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="font-bold text-sm text-primary">{product.code}</div>
+                      <div className="text-xs text-gray-600">{product.name}</div>
+                      <div className="text-xs text-green-600 font-semibold mt-1">
+                        Available: {product.available}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className={cn(
+                        "font-bold",
+                        product.colorTheme === 'emerald' && "text-emerald-600",
+                        product.colorTheme === 'blue' && "text-blue-600",
+                        product.colorTheme === 'purple' && "text-purple-600",
+                        product.colorTheme === 'orange' && "text-orange-600"
+                      )}>
+                        {product.price}
+                      </div>
+                      <button
+                        className={cn(
+                          "mt-1 px-3 py-1 text-white text-xs rounded-lg transition-all flex items-center",
+                          product.colorTheme === 'emerald' && "bg-emerald-500 hover:bg-emerald-600",
+                          product.colorTheme === 'blue' && "bg-blue-500 hover:bg-blue-600",
+                          product.colorTheme === 'purple' && "bg-purple-500 hover:bg-purple-600",
+                          product.colorTheme === 'orange' && "bg-orange-500 hover:bg-orange-600"
+                        )}
+                      >
+                        <FaPlus className="mr-1" />
+                        Add
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <button className="px-3 py-1 bg-purple-500 text-white text-xs rounded-lg hover:bg-purple-600 transition-all flex items-center">
-                  <FaExchangeAlt className="mr-1" />
-                  Replace
-                </button>
-              </div>
-            </div>
-
-            <div className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="font-bold text-sm text-primary">SGS24-CHRG</div>
-                  <div className="text-xs text-gray-600">Wireless Charger 25W</div>
-                  <div className="text-xs text-blue-600 font-semibold mt-1">$89.99</div>
-                </div>
-                <button className="px-3 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 transition-all flex items-center">
-                  <FaPlus className="mr-1" />
-                  Add
-                </button>
-              </div>
+              ))}
             </div>
           </div>
-        </div>
+        )}
+
+        {/* Alternative Products Tab Content */}
+        {upsellTab === 'alternative' && (
+          <div className="p-4">
+            <div className="space-y-3 max-h-[200px] overflow-y-auto pr-2">
+              {alternativeProducts.map((product, idx) => (
+                <div
+                  key={idx}
+                  className={cn(
+                    "p-3 rounded-xl border",
+                    product.colorTheme === 'emerald' && "bg-gradient-to-r from-emerald-50 to-green-50 border-emerald-200",
+                    product.colorTheme === 'blue' && "bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200",
+                    product.colorTheme === 'purple' && "bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200",
+                    product.colorTheme === 'orange' && "bg-gradient-to-r from-orange-50 to-red-50 border-orange-200"
+                  )}
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="font-bold text-sm text-primary">{product.code}</div>
+                      <div className="text-xs text-gray-600">{product.name}</div>
+                      <div className="text-xs text-green-600 font-semibold mt-1">
+                        Available: {product.available}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className={cn(
+                        "font-bold",
+                        product.colorTheme === 'emerald' && "text-emerald-600",
+                        product.colorTheme === 'blue' && "text-blue-600",
+                        product.colorTheme === 'purple' && "text-purple-600",
+                        product.colorTheme === 'orange' && "text-orange-600"
+                      )}>
+                        {product.price}
+                      </div>
+                      <button
+                        className={cn(
+                          "mt-1 px-3 py-1 text-white text-xs rounded-lg transition-all flex items-center",
+                          product.colorTheme === 'emerald' && "bg-emerald-500 hover:bg-emerald-600",
+                          product.colorTheme === 'blue' && "bg-blue-500 hover:bg-blue-600",
+                          product.colorTheme === 'purple' && "bg-purple-500 hover:bg-purple-600",
+                          product.colorTheme === 'orange' && "bg-orange-500 hover:bg-orange-600"
+                        )}
+                      >
+                        <FaExchangeAlt className="mr-1" />
+                        Replace
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -51,7 +51,7 @@ const OrderDetails: React.FC = () => {
             <SelectTrigger className="w-full p-4 bg-white/80 border border-white/40 rounded-xl shadow-lg focus:ring-2 focus:ring-accent focus:border-transparent transition-all">
               <SelectValue placeholder="Select Price List" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className='bg-white'>
               <SelectItem value="default">Default Price List</SelectItem>
               <SelectItem value="wholesale">Wholesale Price List</SelectItem>
               <SelectItem value="retail">Retail Price List</SelectItem>

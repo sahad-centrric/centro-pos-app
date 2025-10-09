@@ -1,3 +1,13 @@
+import { Input } from '@renderer/components/ui/input'
+import { Label } from '@renderer/components/ui/label'
+import { Textarea } from '@renderer/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@renderer/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@renderer/components/ui/tabs'
 import { Button } from '@renderer/components/ui/button'
 import {
@@ -24,12 +34,32 @@ type Props = {
 type EditField = 'quantity' | 'uom' | 'discount_percentage'
 
 const ItemsTable: React.FC<Props> = ({ selectedItemId, onRemoveItem, selectItem, shouldStartEditing = false, onEditingStarted }) => {
-  const { getCurrentTabItems, activeTabId, updateItemInTab } = usePOSTabStore();
+  const { getCurrentTabItems, activeTabId, updateItemInTab, getCurrentTab, updateTabOtherDetails } = usePOSTabStore();
   const items = getCurrentTabItems();
+  const currentTab = getCurrentTab();
   const [activeField, setActiveField] = useState<EditField>('quantity');
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState<string>('')
   const inputRef = useRef<HTMLInputElement>(null)
+
+  const warehouses = [
+    { value: 'main-warehouse', label: 'Main Warehouse' },
+    { value: 'secondary-warehouse', label: 'Secondary Warehouse' },
+    { value: 'retail-store', label: 'Retail Store' },
+  ]
+
+  const paymentTerms = [
+    { value: 'cash', label: 'Cash on Delivery' },
+    { value: 'net-30', label: 'Net 30 Days' },
+    { value: 'net-60', label: 'Net 60 Days' },
+    { value: 'advance', label: 'Advance Payment' },
+  ]
+
+  const salesAccounts = [
+    { value: 'sales-general', label: 'Sales - General' },
+    { value: 'sales-retail', label: 'Sales - Retail' },
+    { value: 'sales-wholesale', label: 'Sales - Wholesale' },
+  ]
 
   useEffect(() => {
     if (shouldStartEditing && selectedItemId && !isEditing) {
@@ -149,8 +179,8 @@ const ItemsTable: React.FC<Props> = ({ selectedItemId, onRemoveItem, selectItem,
                       }}
                       key={item.item_code}
                       className={`transition-all ${isSelected
-                          ? 'bg-gradient-to-r from-blue-50 to-blue-100 border-l-4 border-l-blue-500 shadow-md'
-                          : 'hover:bg-gray-50'
+                        ? 'bg-gradient-to-r from-blue-50 to-blue-100 border-l-4 border-l-blue-500 shadow-md'
+                        : 'hover:bg-gray-50'
                         }`}
                     >
                       <TableCell className={isSelected ? 'font-semibold text-blue-900' : ''}>
@@ -163,8 +193,8 @@ const ItemsTable: React.FC<Props> = ({ selectedItemId, onRemoveItem, selectItem,
                       {/* Quantity Cell */}
                       <TableCell
                         className={`${isSelected && activeField === 'quantity'
-                            ? 'ring-2 ring-blue-500 ring-inset bg-blue-50'
-                            : ''
+                          ? 'ring-2 ring-blue-500 ring-inset bg-blue-50'
+                          : ''
                           } ${isSelected ? 'font-medium' : ''}`}
                       >
                         {isEditingQuantity ? (
@@ -195,8 +225,8 @@ const ItemsTable: React.FC<Props> = ({ selectedItemId, onRemoveItem, selectItem,
                       {/* UOM Cell */}
                       <TableCell
                         className={`${isSelected && activeField === 'uom'
-                            ? 'ring-2 ring-blue-500 ring-inset bg-blue-50'
-                            : ''
+                          ? 'ring-2 ring-blue-500 ring-inset bg-blue-50'
+                          : ''
                           } ${isSelected ? 'font-medium' : ''}`}
                       >
                         {isEditingUom ? (
@@ -225,8 +255,8 @@ const ItemsTable: React.FC<Props> = ({ selectedItemId, onRemoveItem, selectItem,
                       {/* Discount Cell */}
                       <TableCell
                         className={`${isSelected && activeField === 'discount_percentage'
-                            ? 'ring-2 ring-blue-500 ring-inset bg-blue-50'
-                            : ''
+                          ? 'ring-2 ring-blue-500 ring-inset bg-blue-50'
+                          : ''
                           } ${isSelected ? 'font-medium' : ''}`}
                       >
                         {isEditingDiscount ? (
@@ -292,6 +322,147 @@ const ItemsTable: React.FC<Props> = ({ selectedItemId, onRemoveItem, selectItem,
                 <Plus className="w-4 h-4 mr-2" />
                 Press &apos;Shift&apos; to add item • Space to edit • ←→ to navigate fields
               </Button>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="other" className="mt-4">
+          <div className="border rounded-lg p-6 bg-white space-y-6">
+            {/* Row 1: PO Reference and Warehouse */}
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="po-reference" className="text-sm font-semibold text-gray-700">
+                  PO Reference
+                </Label>
+                <Input
+                  id="po-reference"
+                  type="text"
+                  placeholder="Purchase Order Reference"
+                  value={currentTab?.otherDetails?.poReference || ''}
+                  onChange={(e) => {
+                    if (activeTabId) {
+                      updateTabOtherDetails(activeTabId, { poReference: e.target.value })
+                    }
+                  }}
+                  className="h-12"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="warehouse" className="text-sm font-semibold text-gray-700">
+                  Out Warehouse
+                </Label>
+                <Select
+                  value={currentTab?.otherDetails?.outWarehouse || ''}
+                  onValueChange={(value) => {
+                    if (activeTabId) {
+                      updateTabOtherDetails(activeTabId, { outWarehouse: value })
+                    }
+                  }}
+                >
+                  <SelectTrigger id="warehouse" className="h-12">
+                    <SelectValue placeholder="Select warehouse" />
+                  </SelectTrigger>
+                  <SelectContent className='bg-white'>
+                    {warehouses.map((wh) => (
+                      <SelectItem key={wh.value} value={wh.value}>
+                        {wh.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Row 2: Payment Terms and Sales Account */}
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="payment-terms" className="text-sm font-semibold text-gray-700">
+                  Payment Terms
+                </Label>
+                <Select
+                  value={currentTab?.otherDetails?.paymentTerms || ''}
+                  onValueChange={(value) => {
+                    if (activeTabId) {
+                      updateTabOtherDetails(activeTabId, { paymentTerms: value })
+                    }
+                  }}
+                >
+                  <SelectTrigger id="payment-terms" className="h-12">
+                    <SelectValue placeholder="Select payment terms" />
+                  </SelectTrigger>
+                  <SelectContent className='bg-white'>
+                    {paymentTerms.map((term) => (
+                      <SelectItem key={term.value} value={term.value}>
+                        {term.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="sales-account" className="text-sm font-semibold text-gray-700">
+                  Default Sales Account
+                </Label>
+                <Select
+                  value={currentTab?.otherDetails?.salesAccount || ''}
+                  onValueChange={(value) => {
+                    if (activeTabId) {
+                      updateTabOtherDetails(activeTabId, { salesAccount: value })
+                    }
+                  }}
+                >
+                  <SelectTrigger id="sales-account" className="h-12">
+                    <SelectValue placeholder="Select sales account" />
+                  </SelectTrigger>
+                  <SelectContent className='bg-white'>
+                    {salesAccounts.map((account) => (
+                      <SelectItem key={account.value} value={account.value}>
+                        {account.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Row 3: Terms & Conditions */}
+            <div className="space-y-2">
+              <Label htmlFor="terms-conditions" className="text-sm font-semibold text-gray-700">
+                Terms & Conditions
+              </Label>
+              <Textarea
+                id="terms-conditions"
+                rows={4}
+                placeholder="Enter terms and conditions..."
+                value={currentTab?.otherDetails?.termsConditions || ''}
+                onChange={(e) => {
+                  if (activeTabId) {
+                    updateTabOtherDetails(activeTabId, { termsConditions: e.target.value })
+                  }
+                }}
+                className="resize-none"
+              />
+            </div>
+
+            {/* Row 4: Internal Notes */}
+            <div className="space-y-2">
+              <Label htmlFor="internal-notes" className="text-sm font-semibold text-gray-700">
+                Internal Notes
+              </Label>
+              <Textarea
+                id="internal-notes"
+                rows={4}
+                placeholder="Internal notes for staff..."
+                value={currentTab?.otherDetails?.internalNotes || ''}
+                onChange={(e) => {
+                  if (activeTabId) {
+                    updateTabOtherDetails(activeTabId, { internalNotes: e.target.value })
+                  }
+                }}
+                className="resize-none"
+              />
             </div>
           </div>
         </TabsContent>

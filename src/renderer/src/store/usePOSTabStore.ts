@@ -15,6 +15,15 @@ interface Tab {
   isEdited?: boolean
   taxAmount?: number
   invoiceData?: any
+
+  otherDetails?: {
+    poReference?: string
+    outWarehouse?: string
+    paymentTerms?: string
+    salesAccount?: string
+    termsConditions?: string
+    internalNotes?: string
+  }
 }
 
 interface POSTabStore {
@@ -37,6 +46,9 @@ interface POSTabStore {
   
   // Customer management methods
   updateTabCustomer: (tabId: string, customer: { name: string; gst: string }) => void
+  
+  updateTabOtherDetails: (tabId: string, details: Partial<Tab['otherDetails']>) => void
+  
   
   // Helper methods
   getCurrentTab: () => Tab | undefined
@@ -201,7 +213,21 @@ export const usePOSTabStore = create<POSTabStore>()(
         const state = get()
         const tab = state.tabs.find(tab => tab.id === tabId)
         return tab ? tab.items.some(item => item.item_code === itemCode) : false
-      }
+      },
+
+      updateTabOtherDetails: (tabId: string, details: Partial<Tab['otherDetails']>) => {
+        set((state) => ({
+        tabs: state.tabs.map((tab) =>
+        tab.id === tabId
+        ? {
+            ...tab,
+            otherDetails: { ...tab.otherDetails, ...details },
+            isEdited: true
+          }
+        : tab
+      )
+    }))
+    }
     }),
     {
       name: 'pos-tab-store',

@@ -112,8 +112,8 @@ const POSInterface: React.FC = () => {
             Open
           </button> */}
           <ActionButtons />
+          <OrderDetails />
           <div className="flex-1 overflow-auto">
-            <OrderDetails />
             <ItemsTable
               onRemoveItem={removeItem}
               selectedItemId={selectedItemId}
@@ -121,8 +121,8 @@ const POSInterface: React.FC = () => {
               shouldStartEditing={shouldStartEditing}
               onEditingStarted={() => setShouldStartEditing(false)}
             />
-            <DiscountSection />
           </div>
+          <DiscountSection />
           <PaymentAlert orderNumber={currentTab?.orderId || ''} />
         </div>
         <div className="w-[32rem] border-l bg-white">
