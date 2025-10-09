@@ -1,6 +1,6 @@
 # centrric-erpnext-pos
 
-An Electron application with React and TypeScript
+An Electron application with React and TypeScript git add
 
 ## Recommended IDE Setup
 
