@@ -1,5 +1,6 @@
 import { Button } from '@renderer/components/ui/button'
 import { usePOSTabStore } from '../../../store/usePOSTabStore'
+import { useHotkeys } from 'react-hotkeys-hook'
 // import { API_Endpoints } from '@renderer/config/endpoints'
 // import { useMutationQuery } from '@renderer/hooks/react-query/useReactQuery'
 // import { useAuth } from '@renderer/hooks/useAuth'
@@ -14,6 +15,11 @@ const Header: React.FC = () => {
     createNewTab()
   }
 
+  useHotkeys('mod+n', (e) => {
+    e.preventDefault()
+    handleNewOrder()
+  }, { enableOnFormTags: false })
+
   // const { mutate } = useMutationQuery({
   //   endPoint: API_Endpoints.LOGOUT,
   //   method: 'POST'
@@ -26,7 +32,7 @@ const Header: React.FC = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-6">
           <Button
-            className="px-8 py-3 bg-gradient-to-r from-primary to-slate-700 text-white font-medium rounded-xl hover:shadow-lg transition-all duration-300 flex items-center gap-3 "
+            className="px-8 py-3 bg-black text-white font-medium rounded-xl hover:shadow-lg transition-all duration-300 flex items-center gap-3 "
             onClick={handleNewOrder}
           >
             <i className="fas fa-plus text-lg"></i>
@@ -39,9 +45,8 @@ const Header: React.FC = () => {
             {tabs.map((tab) => (
               <div
                 key={tab.id}
-                className={`flex items-center px-3 py-2 rounded-xl cursor-pointer transition-all duration-200 ${
-                  activeTabId === tab.id ? 'bg-white/80 font-bold shadow' : 'bg-white/40'
-                }`}
+                className={`flex items-center px-3 py-2 rounded-xl cursor-pointer transition-all duration-200 ${activeTabId === tab.id ? 'bg-white/80 font-bold shadow' : 'bg-white/40'
+                  }`}
                 onClick={() => setActiveTab(tab.id)}
               >
                 <span>
@@ -62,7 +67,7 @@ const Header: React.FC = () => {
           </div>
         </div>
 
-        
+
 
         <div className="ml-auto text-right bg-white/60 backdrop-blur rounded-xl p-4 shadow-lg">
           <div className="font-bold text-lg">{new Date().toLocaleDateString()}</div>

@@ -89,7 +89,7 @@ const DiscountSection: React.FC<Props> = () => {
             <div className="text-gray-500 font-medium text-xs">Rounding</div>
             <div className="font-bold text-base">${rounding.toFixed(2)}</div>
           </div>
-          <div className="text-center p-3 bg-gradient-to-r from-primary to-slate-700 text-white rounded-xl shadow-xl">
+          <div className="text-center p-3 bg-black text-white rounded-xl shadow-xl">
             <div className="text-white/80 font-medium text-xs">Total</div>
             <div className="font-bold text-xl">${finalTotal.toFixed(2)}</div>
           </div>
